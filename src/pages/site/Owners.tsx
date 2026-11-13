@@ -166,6 +166,10 @@ export default function Owners() {
                 <p>What we're holding for you right now, your reserve, and every payout, without waiting for the statement.</p>
               </div>
               <div>
+                <h3>A written read every month</h3>
+                <p>Plain-English commentary on each property with the statement: what moved, what's off-pattern, and what's coming up.</p>
+              </div>
+              <div>
                 <h3>Approve the spend, not the small stuff</h3>
                 <p>Bids, photos, and a yes/no button on anything above your threshold. Everything below it just appears on the statement.</p>
               </div>

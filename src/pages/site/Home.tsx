@@ -10,9 +10,9 @@ export default function Home() {
       <div className="hero" id="top">
         <div className="wrap hero-grid">
           <div className="reveal">
-            <span className="kicker">One to twenty units</span>
-            <h1>Twenty units is our ceiling. <em>Not our minimum.</em></h1>
-            <p className="lede">Most managers in southeast Wisconsin want fifty doors before they'll return the call. DH Property Management was built the other way around: the duplex, the four-plex, the twelve you bought one at a time. A percentage of the rent we actually collect, no markup on repairs, and a statement your accountant can use without a phone call.</p>
+            <span className="kicker">Small portfolios, big-firm service</span>
+            <h1>No door minimum. <em>No waiting until morning.</em></h1>
+            <p className="lede">Most managers in southeast Wisconsin want fifty doors before they'll return the call. DH Property Management starts with the duplex, the four-plex, the twelve you bought one at a time, and gives them the service a large firm gives its biggest client: maintenance requests answered in seconds at any hour, a written read on every property each month, and problems flagged before they turn into emergencies. A percentage of the rent we actually collect, and no markup on repairs.</p>
             <div className="btn-row">
               <a className="btn btn-primary" href="#quote">Get a management quote</a>
               <a className="btn btn-ghost-dark" href="#pricing">See what we charge</a>
@@ -48,8 +48,8 @@ export default function Home() {
           <h2>Small owners get treated like an afterthought. That's the whole opening.</h2>
           <div className="num-grid">
             <div className="num">
-              <b>1&ndash;20</b>
-              <p>Units we take on. No minimum door count and no waiting list for one-unit owners.</p>
+              <b>24/7</b>
+              <p>Maintenance requests answered in seconds, any hour, with a real person on the phone for emergencies. No door minimum, either.</p>
             </div>
             <div className="num">
               <b>7&ndash;9%</b>
@@ -72,7 +72,7 @@ export default function Home() {
             <div className="prob">
               <h3>You own two to six units and nobody will quote you</h3>
               <p>The regional firms want a portfolio. The one-man operators are at capacity. You've been told to call back when you're bigger.</p>
-              <p className="fix">Small portfolios aren't our overflow work. They're the entire book.</p>
+              <p className="fix">Small portfolios aren't our overflow work. They're where we started, and they get the same service as our biggest account.</p>
             </div>
             <div className="prob">
               <h3>You self-manage and it's finally too much</h3>
@@ -83,6 +83,47 @@ export default function Home() {
               <h3>You live an hour or three away</h3>
               <p>You bought in Elkhorn or Waukesha and moved. You need somebody who can be at the building today, not next week.</p>
               <p className="fix">We stay inside a radius we can drive, and we say no to properties outside it.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICE */}
+      <section id="service" style={{ background: "var(--paper-2)" }}>
+        <div className="wrap">
+          <span className="kicker">The service level</span>
+          <h2>What a firm ten times our size does, for your four units</h2>
+          <p className="lede" style={{ marginTop: "16px" }}>We built our own systems so a small office can respond faster and document more than the managers with fifty-door minimums. You don't see the systems. You see the results.</p>
+          <div className="prob-grid">
+            <div className="prob">
+              <h3>Answered in seconds, any hour</h3>
+              <p>A request at 11pm gets an instant reply that asks the right questions, collects photos, and walks the tenant through quick fixes like a tripped breaker or a GFCI reset.</p>
+              <p className="fix">Emergencies go straight to a phone call. Everything else is a vendor-ready work order by morning.</p>
+            </div>
+            <div className="prob">
+              <h3>A written read on every property, every month</h3>
+              <p>Your statement comes with two paragraphs in plain English: what changed, what's unusual, which unit is furthest below market, and which leases are coming up.</p>
+              <p className="fix">Every number is calculated from the ledger, never estimated.</p>
+            </div>
+            <div className="prob">
+              <h3>Problems flagged before they're emergencies</h3>
+              <p>A hard freeze in the forecast means a heads-up to tenants and a check on vacant units. Leases 90 days out get renewal offers with local comps. An aging furnace shows up in your budget before it fails.</p>
+              <p className="fix">Most managers react. We work from a calendar.</p>
+            </div>
+            <div className="prob">
+              <h3>Every move-in and move-out on the record</h3>
+              <p>Room-by-room photo condition reports at both ends, so deposit decisions rest on the check-in record, not on memory.</p>
+              <p className="fix">If a deposit is ever challenged, you have the documentation.</p>
+            </div>
+            <div className="prob">
+              <h3>Vacancy inquiries answered in minutes</h3>
+              <p>Renters shop in the evening, and the first reply usually wins the applicant. Inquiries get answered quickly, nights and weekends included, with showings booked straight into the calendar.</p>
+              <p className="fix">Every applicant is measured against the same published criteria, and a person makes every decision.</p>
+            </div>
+            <div className="prob">
+              <h3>A real analysis with your quote</h3>
+              <p>Send the addresses and within a day you get a rent estimate, an expense model and NOI for each property, plus a sanity check on any big repair bid you're weighing.</p>
+              <p className="fix">Useful whether or not you hire us.</p>
             </div>
           </div>
         </div>
@@ -185,7 +226,7 @@ export default function Home() {
               <a className="btn btn-primary" href="#quote">Get a quote</a>
             </div>
             <div className="tier">
-              <span className="units">10&ndash;20 units</span>
+              <span className="units">10+ units</span>
               <h3>Operator</h3>
               <p className="rate">7%<small> of collected rent</small></p>
               <p className="sub">No minimum, no vacancy fee</p>
@@ -266,7 +307,7 @@ export default function Home() {
             <h2>Questions owners ask first</h2>
             <details>
               <summary>Will you really manage one duplex?</summary>
-              <p>Yes. One to twenty units is the entire business. A single-unit owner gets the same statement, portal, and maintenance line as the twenty-unit accounts.</p>
+              <p>Yes. There's no door minimum. A single-unit owner gets the same statement, portal, and around-the-clock maintenance line as our largest accounts.</p>
             </details>
             <details>
               <summary>Can I keep using my own plumber and HVAC guy?</summary>
@@ -297,7 +338,7 @@ export default function Home() {
         <div className="wrap">
           <span className="kicker">Get a quote</span>
           <h2>Send the addresses and the rent roll. We'll send back a number.</h2>
-          <p>No pitch meeting required. Fifteen minutes on the phone, a walkthrough of the units, and a written quote with the punch list included.</p>
+          <p>No pitch meeting required. Within a day you get a rent estimate and expense model for each property. Then fifteen minutes on the phone, a walkthrough of the units, and a written quote with the punch list included.</p>
           <QuoteForm />
         </div>
       </section>

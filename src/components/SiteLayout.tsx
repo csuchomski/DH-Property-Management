@@ -19,7 +19,7 @@ export default function SiteLayout() {
   return (
     <>
       <div className="banner">
-        Taking on owners with 1&ndash;20 units in {SITE.counties}. <a href={withBase("/#quote")}>Check availability</a>
+        Now taking on owners of one unit and up in {SITE.counties}. <a href={withBase("/#quote")}>Check availability</a>
       </div>
 
       <header className="nav">
@@ -62,7 +62,7 @@ export default function SiteLayout() {
                 <BrandMark />
                 {SITE.name}
               </a>
-              <p>Property management for owners of one to twenty units in southeast Wisconsin.</p>
+              <p>Property management for small portfolios in southeast Wisconsin. No door minimum.</p>
             </div>
             <div>
               <h4>Services</h4>

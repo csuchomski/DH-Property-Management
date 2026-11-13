@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { SITE } from "./site";
 
 const TITLES: Record<string, string> = {
-  Home: `${SITE.name} — Management for owners of 1–20 units in SE Wisconsin`,
+  Home: `${SITE.name} — Property management for small portfolios in SE Wisconsin`,
 };
 
 export function usePageTitle(name: string) {
