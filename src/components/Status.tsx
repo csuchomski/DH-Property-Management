@@ -1,4 +1,20 @@
-import { LEASE_STATUS_LABEL, WO_STATUS_LABEL, type LeaseStatus, type WorkOrderStatus } from "../lib/types";
+import {
+  LEASE_STATUS_LABEL, PRIORITY_HINT, PRIORITY_LABEL, WO_STATUS_LABEL,
+  type LeaseStatus, type Priority, type WorkOrderStatus,
+} from "../lib/types";
+
+const PRIORITY_TONE: Record<Priority, string> = { P1: "crit", P2: "warn", P3: "" };
+
+// Null for work orders staff opened directly: those never went through triage, and an
+// invented priority would undercut the point of showing one.
+export function PriorityTag({ priority, showRule }: { priority: Priority | null; showRule?: string | null }) {
+  if (!priority) return null;
+  return (
+    <span className={`tag ${PRIORITY_TONE[priority]}`} title={`${priority} — ${PRIORITY_HINT[priority]}`}>
+      {PRIORITY_LABEL[priority]}{showRule ? ` · ${showRule}` : ""}
+    </span>
+  );
+}
 
 const WO_TONE: Record<WorkOrderStatus, string> = {
   open: "",

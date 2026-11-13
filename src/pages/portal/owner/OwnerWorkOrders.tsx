@@ -1,6 +1,6 @@
 import { Approvals, WO_SELECT_BY_OWNER, woPlace, type WorkOrderRow } from "../../../components/Approvals";
 import { useOwnerSelection } from "../../../components/OwnerPicker";
-import { Loading, WorkOrderTag } from "../../../components/Status";
+import { Loading, PriorityTag, WorkOrderTag } from "../../../components/Status";
 import { acct, shortDate } from "../../../lib/format";
 import { supabase } from "../../../lib/supabase";
 import { useQuery } from "../../../lib/useQuery";
@@ -75,6 +75,7 @@ export default function OwnerWorkOrders() {
                 <th>Category</th>
                 <th>Description</th>
                 <th>Vendor</th>
+                <th>Response</th>
                 <th>Status</th>
                 <th className="n">Cost</th>
               </tr>
@@ -89,8 +90,19 @@ export default function OwnerWorkOrders() {
                   <td>
                     <b>{w.title}</b>
                     {w.description ? <>. {w.description}</> : null}
+                    {!!w.triage_answers?.length && (
+                      <ul className="triage-trail">
+                        {w.triage_answers.map((t, i) => (
+                          <li key={i}>{t.q} → {t.a}</li>
+                        ))}
+                      </ul>
+                    )}
                   </td>
                   <td>{w.vendor ?? "—"}</td>
+                  <td>
+                    <PriorityTag priority={w.priority} />
+                    {w.rule_id && <div className="rule-chip">{w.rule_id}</div>}
+                  </td>
                   <td>
                     <WorkOrderTag status={w.status} closedOn={w.closed_on ? shortDate(w.closed_on) : null} />
                   </td>
