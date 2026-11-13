@@ -26,31 +26,39 @@ export default function Tenants() {
       <section id="pay">
         <div className="wrap">
           <span className="kicker">Paying rent</span>
-          <h2>Three ways to pay, all of them free</h2>
+          <h2>Pay online through Zillow, free from your bank</h2>
+          <p className="lede" style={{ marginTop: "14px" }}>
+            We collect rent through Zillow Rental Manager. When your lease starts you'll get an email invitation from
+            Zillow to set up payments; after that, you pay at zillow.com or in the Zillow app.
+          </p>
           <div className="pay-grid">
             <div className="pay">
               <h3>Autopay from your bank</h3>
-              <p>Set it once in the tenant portal and it clears on the 1st. You get a receipt by email the same morning.</p>
+              <p>Link your bank account once and turn on autopay. Rent goes out on schedule and Zillow emails you a receipt.</p>
               <p className="meta">No fee &middot; recommended</p>
             </div>
             <div className="pay">
-              <h3>One-time bank transfer</h3>
-              <p>Log in and pay any amount, any time. Transfers started after 4pm post the next business day.</p>
-              <p className="meta">No fee</p>
+              <h3>One-time payment</h3>
+              <p>Pay any amount, any time. A bank transfer is free. Zillow also takes cards, but charges a fee for them.</p>
+              <p className="meta">Bank: no fee &middot; cards: Zillow's fee</p>
             </div>
             <div className="pay">
-              <h3>Cash or money order</h3>
-              <p>Pay with cash at any participating retailer using the barcode in your portal, or mail a money order to the office.</p>
-              <p className="meta">Retailer may charge their own fee</p>
+              <h3>Check or money order</h3>
+              <p>Payable to {SITE.name}, mailed or dropped off at the office. Allow time for mail to arrive by the 1st.</p>
+              <p className="meta">No fee</p>
             </div>
           </div>
+          <p style={{ marginTop: "18px", fontSize: ".92rem", maxWidth: "70ch" }}>
+            However you pay, it goes into our client trust account, never our operating account. It shows up in your
+            payment history in the tenant portal once we post it, usually within one business day.
+          </p>
           <div className="block">
             <h3>When rent is late</h3>
             <ul>
               <li>Rent is due on the 1st. Your lease states the grace period and the late fee amount &mdash; we don't add anything beyond what it says</li>
               <li>You get a reminder the morning of the 2nd, by text and email</li>
               <li>If you're going to be short, tell us before the 1st. A written payment arrangement is almost always better for you than silence</li>
-              <li>We don't report rent payments to credit bureaus, late or on time</li>
+              <li>We don't report late payments to credit bureaus. Zillow lets you opt in to reporting on-time payments, which can help build your credit</li>
             </ul>
           </div>
         </div>

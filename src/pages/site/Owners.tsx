@@ -30,8 +30,8 @@ export default function Owners() {
           <div className="step-grid four" style={{ marginTop: "38px" }}>
             <div className="step">
               <span className="n">1st</span>
-              <h3>Rent posts</h3>
-              <p>Autopay clears overnight. Anything unpaid gets a reminder that morning, not a week later.</p>
+              <h3>Rent comes in</h3>
+              <p>Tenants pay through Zillow, free by bank transfer, into our client trust account. Anything unpaid gets a reminder the next morning, not a week later.</p>
             </div>
             <div className="step">
               <span className="n">5th</span>
@@ -41,7 +41,7 @@ export default function Owners() {
             <div className="step">
               <span className="n">10th</span>
               <h3>Money moves</h3>
-              <p>Net proceeds hit your account by ACH. No holding your rent for a float period.</p>
+              <p>Your balance, less the month's bills, our fee and your reserve, goes to your account by ACH. No holding your rent for a float period.</p>
             </div>
             <div className="step">
               <span className="n">12th</span>
@@ -95,6 +95,7 @@ export default function Owners() {
                 <li>Over it, you get photos, a written bid, and a yes/no</li>
                 <li>Health-and-safety emergencies get handled first and reported immediately, threshold or not</li>
                 <li>Repairs draw from a reserve you fund once; we never advance our own money and never bill interest</li>
+                <li>If a bill is bigger than your balance, we ask you to top it up first. Another owner's money never covers your bills, and yours never covers theirs</li>
               </ul>
             </div>
             <div className="block" style={{ marginTop: "0" }}>
@@ -105,6 +106,39 @@ export default function Owners() {
                 <li>Invoices pass through at cost &mdash; no markup, no coordination fee, no trip charge from us</li>
                 <li>Anything over $1,500 goes out for a second bid unless you tell us not to bother</li>
                 <li>1099s for your vendors go out in January if we paid them on your behalf</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST */}
+      <section id="trust" style={{ background: "var(--paper-2)" }}>
+        <div className="wrap">
+          <span className="kicker">Where your money sits</span>
+          <h2>In trust, on your own ledger, reconciled every month</h2>
+          <p className="lede" style={{ marginTop: "16px" }}>
+            Rent is your money from the moment a tenant pays it. We hold it the way the rules for client funds expect,
+            and you can see your balance any day.
+          </p>
+          <div className="two-up">
+            <div className="block" style={{ marginTop: "0" }}>
+              <h3>How it's held</h3>
+              <ul>
+                <li>Rent goes into a client trust account, kept apart from DH's own operating account</li>
+                <li>Security deposits sit in a second, separate trust account and are never used for bills</li>
+                <li>Every owner has their own ledger inside the trust account, broken down by property</li>
+                <li>Bills are paid only from your balance. If it can't cover one, you hear from us before anything is paid</li>
+                <li>Our fee moves out of trust only when your payout does, and it's shown as its own line</li>
+              </ul>
+            </div>
+            <div className="block" style={{ marginTop: "0" }}>
+              <h3>How it's checked</h3>
+              <ul>
+                <li>Every month we reconcile three numbers: the bank statement, our books, and the total of every owner's ledger</li>
+                <li>The three have to match to the penny, and the signed reconciliation is kept on file</li>
+                <li>Your statement shows what came in, what went out, your payout, and your balance at month end</li>
+                <li>The owner portal shows your current trust balance and reserve, not just last month's</li>
               </ul>
             </div>
           </div>
@@ -127,6 +161,10 @@ export default function Owners() {
               <div className="unit"><div><b>7 Foundry Ct &mdash; 3</b><span>Vacant &middot; listed 9/8, 6 showings</span></div><span className="pill work">Leasing</span></div>
             </div>
             <div className="portal-list">
+              <div>
+                <h3>Your trust balance, any day</h3>
+                <p>What we're holding for you right now, your reserve, and every payout, without waiting for the statement.</p>
+              </div>
               <div>
                 <h3>Approve the spend, not the small stuff</h3>
                 <p>Bids, photos, and a yes/no button on anything above your threshold. Everything below it just appears on the statement.</p>

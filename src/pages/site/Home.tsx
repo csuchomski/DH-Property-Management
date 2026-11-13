@@ -123,7 +123,7 @@ export default function Home() {
               <h3>Full management</h3>
               <p>Day-to-day operations for owners who want the property off their calendar entirely.</p>
               <ul>
-                <li>Rent collection, late notices, and deposits to your account by the 10th</li>
+                <li>Rent collected into a client trust account, with your payout by ACH by the 10th</li>
                 <li>Tenant screening, lease prep, renewals, and rent-increase timing</li>
                 <li>24/7 maintenance line and work-order dispatch to vetted trades</li>
                 <li>Move-in and move-out inspections with photo record</li>
@@ -271,6 +271,10 @@ export default function Home() {
             <details>
               <summary>Can I keep using my own plumber and HVAC guy?</summary>
               <p>Yes, as long as they're licensed, insured, and answer the phone. Put them on your vendor list during onboarding and we'll dispatch them first.</p>
+            </details>
+            <details>
+              <summary>How do tenants pay, and when do I get paid?</summary>
+              <p>Tenants pay through Zillow, free by bank transfer, and the money lands in our client trust account, on your own ledger. By the 10th we pay out your balance by ACH, less the month's bills, our fee and your reserve. Your money never covers another owner's bills, and we reconcile the account to the penny every month.</p>
             </details>
             <details>
               <summary>Who holds the security deposits?</summary>
