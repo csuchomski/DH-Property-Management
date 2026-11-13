@@ -1,0 +1,27 @@
+<!-- Supabase Auth email template: paste into Authentication → Emails → Templates
+     ("Magic Link", and the same body into "Confirm signup").
+     Subject: Your DH Property Management sign-in link -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F4EF;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #D9D3C6;border-radius:12px;overflow:hidden;">
+        <tr>
+          <td style="background:#101B2B;padding:16px 24px;">
+            <span style="display:inline-block;background:#EFB13B;color:#101B2B;font-weight:bold;font-size:12px;line-height:24px;width:26px;text-align:center;border-radius:6px;">DH</span>
+            <span style="color:#F6F4EF;font-weight:bold;font-size:16px;vertical-align:middle;padding-left:8px;">DH Property Management</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px;color:#374A5E;font-size:15px;line-height:1.55;">
+            <p style="margin:0 0 12px;color:#101B2B;font-size:20px;font-weight:bold;">Sign in to your portal</p>
+            <p style="margin:0 0 20px;">Use the button below to sign in. The link works once and expires in an hour.</p>
+            <p style="margin:0 0 24px;">
+              <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#EFB13B;color:#101B2B;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:999px;">Sign in</a>
+            </p>
+            <p style="margin:0;font-size:13px;color:#6C7C8D;">Didn't ask for this? You can ignore this email; nobody can sign in without the link. Questions? Reply to this email.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

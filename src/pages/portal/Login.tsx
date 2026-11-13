@@ -5,6 +5,14 @@ import { Field, FormMessage } from "../../components/Forms";
 import { SITE } from "../../lib/site";
 import { supabase } from "../../lib/supabase";
 
+// Supabase limits how many sign-in emails go out per hour (and per address, per minute).
+function friendlyError(err: { message: string; status?: number }) {
+  if (err.status === 429 || /rate limit|security purposes/i.test(err.message)) {
+    return "Too many sign-in emails have been sent in the last little while. Wait a few minutes, then try again.";
+  }
+  return err.message;
+}
+
 // Passwordless sign-in: Supabase emails a one-time link. Using the link proves the
 // person controls the address, which is what link_my_account() relies on.
 export default function Login() {
@@ -22,7 +30,7 @@ export default function Login() {
       options: { emailRedirectTo: window.location.href },
     });
     setBusy(false);
-    if (error) setError(error.message);
+    if (error) setError(friendlyError(error));
     else setSent(true);
   }
 

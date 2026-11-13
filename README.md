@@ -54,6 +54,18 @@ The marketing site runs without `.env.local`. Without it, the forms and portal s
    update public.profiles set role = 'staff' where email = 'you@example.com';
    ```
 
+### Sign-in email (Gmail SMTP)
+
+Supabase's built-in sender only allows a few emails an hour, so sign-in emails go out through the company Gmail account.
+
+1. In Google, turn on 2-Step Verification, then create an app password at https://myaccount.google.com/apppasswords (name it "Supabase").
+2. In Supabase, go to Authentication → Emails → SMTP Settings and turn on custom SMTP:
+   - Host `smtp.gmail.com`, port `587`
+   - Username and sender email `dhpropertymgmtmke@gmail.com`, sender name `DH Property Management`
+   - Password: the 16-character app password
+3. Under Authentication → Rate Limits, raise "emails sent per hour" (for example to 30). Gmail allows about 500 a day.
+4. Under Authentication → Emails → Templates, set the subject `Your DH Property Management sign-in link` and paste `supabase/templates/magic_link.html` into both the **Magic Link** and **Confirm signup** templates.
+
 ### How access works
 
 - Every sign-in creates a `profiles` row with no role, which sees nothing.
