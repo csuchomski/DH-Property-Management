@@ -229,9 +229,14 @@
 fieldset.checks{border:1px solid var(--line);border-radius:var(--r-md);padding:10px 14px 12px;margin:12px 0;display:flex;flex-wrap:wrap;gap:6px 16px}
 fieldset.checks legend{font-weight:600;font-size:.88rem;padding:0 4px;color:var(--ink)}
 fieldset.checks .check{min-width:150px}
-.add-town{display:inline-flex;gap:6px;align-items:center}
-.add-town input{width:150px}
 .filters{margin-top:6px}
 /* Inline inputs outside a .field (vendor review, add town, trust payout, reconciliation) */
-.review-actions select,.add-town input,.recon .kv input,.tbl td input[type=number]{font:inherit;font-size:.9rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 9px}
-.review-actions select:focus,.add-town input:focus,.recon .kv input:focus,.tbl td input[type=number]:focus{outline:3px solid rgba(31,94,82,.35);border-color:var(--pine)}
+.review-actions select,.recon .kv input,.tbl td input[type=number]{font:inherit;font-size:.9rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 9px}
+.review-actions select:focus,.recon .kv input:focus,.tbl td input[type=number]:focus{outline:3px solid rgba(31,94,82,.35);border-color:var(--pine)}
+.multi{position:relative}
+.multi-btn{width:100%;text-align:left;font:inherit;font-size:.95rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 34px 9px 11px;cursor:pointer;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.multi-btn::after{content:"";position:absolute;right:13px;top:50%;width:7px;height:7px;border-right:2px solid #44546A;border-bottom:2px solid #44546A;transform:translateY(-70%) rotate(45deg)}
+.multi-btn:focus-visible{outline:3px solid rgba(31,94,82,.35);border-color:var(--pine)}
+.multi-menu{position:absolute;z-index:20;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:0 10px 30px rgba(16,27,43,.12);padding:8px 12px;display:grid;gap:4px;max-height:320px;overflow-y:auto}
+.multi-menu .check{font-weight:400;padding:3px 0}
+.multi-menu .link-btn{justify-self:start;margin-top:4px}

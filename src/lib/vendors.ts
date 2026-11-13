@@ -22,13 +22,12 @@ export const TRADE_LABEL: Record<string, string> = {
   other: "Other",
 };
 
-// Towns on the website's service-area list. Staff can add others on the vendor form;
-// property cities are added automatically.
-export const DEFAULT_AREAS = [
-  "Delavan", "East Troy", "Elkhorn", "Lake Geneva", "Mukwonago", "New Berlin", "North Prairie",
-  "Oak Creek", "Waukesha", "Wauwatosa", "West Allis", "Whitewater",
+// Counties a vendor can cover: southeast Wisconsin, core service area first.
+export const COUNTIES = [
+  "Waukesha", "Walworth", "Milwaukee", "Racine", "Kenosha", "Jefferson", "Washington", "Ozaukee", "Rock", "Dodge",
 ];
 export const ALL_AREAS = "all";
+export const countyLabel = (c: string) => (c === ALL_AREAS ? "All areas" : `${c} County`);
 
 export interface Vendor {
   id: string;
@@ -37,7 +36,8 @@ export interface Vendor {
   phone: string | null;
   email: string | null;
   trades: string[];
-  areas: string[];
+  areas: string[]; // counties, or ["all"]
+  location: string | null; // where the vendor is based
   license_no: string | null;
   insurance_expires: string | null;
   w9_on_file: boolean;
@@ -62,9 +62,12 @@ export interface VendorPreference {
   created_at: string;
 }
 
-export const sameTown = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
-export const coversTown = (v: Pick<Vendor, "areas">, city: string) =>
-  v.areas.includes(ALL_AREAS) || v.areas.some((a) => sameTown(a, city));
+const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+export const coversCounty = (v: Pick<Vendor, "areas">, county: string | null) =>
+  v.areas.includes(ALL_AREAS) || (!!county && v.areas.some((a) => same(a, county)));
+// Covers any of the chosen counties (none chosen = no filter).
+export const coversAny = (v: Pick<Vendor, "areas">, counties: string[]) =>
+  !counties.length || v.areas.includes(ALL_AREAS) || counties.some((c) => coversCounty(v, c));
 
 // Insurance on file and not expiring within 30 days.
 export function insuranceState(expires: string | null): "ok" | "soon" | "expired" | "none" {

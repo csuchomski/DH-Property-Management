@@ -117,9 +117,10 @@ ledger keeps a balance for each owner (receipts minus disbursements on their pro
 
 ## Vendors
 
-- **Staff → Vendors**: your own list, each vendor tagged with trades and the towns they'll work in (or all areas),
+- **Staff → Vendors**: your own list, each vendor tagged with trades, the counties they'll work in (or all areas), where they're based,
   plus license, insurance date, W-9 and a rating. "Find someone for a repair" takes a property and a trade and lists
-  the owner's approved pick first, then your vendors who cover that property's town.
+  the owner's approved pick first, then your vendors who cover that property's county. Properties get their county
+  from the city automatically (editable on the Properties page).
 - **Owner → Vendors**: owners name the plumber, electrician and so on they want called first, for all their
   properties or one. Staff approve (adding the vendor to the list, or matching an existing one) or decline with a
   note; the owner is emailed either way, and staff are emailed when a suggestion comes in.

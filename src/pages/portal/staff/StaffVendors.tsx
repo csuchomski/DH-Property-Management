@@ -1,5 +1,5 @@
 // Staff vendor list: find someone for a repair, review owners' preferred vendors, keep the list.
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Field, FormMessage, formValues, orNull } from "../../../components/Forms";
 import { Loading } from "../../../components/Status";
 import { shortDate } from "../../../lib/format";
@@ -7,12 +7,13 @@ import { supabase } from "../../../lib/supabase";
 import { useQuery } from "../../../lib/useQuery";
 import {
   ALL_AREAS,
-  DEFAULT_AREAS,
+  COUNTIES,
   TRADES,
   TRADE_LABEL,
-  coversTown,
+  countyLabel,
+  coversAny,
+  coversCounty,
   insuranceState,
-  sameTown,
   type Vendor,
   type VendorPreference,
 } from "../../../lib/vendors";
@@ -21,6 +22,7 @@ interface Prop {
   id: string;
   address: string;
   city: string;
+  county: string | null;
   owner_id: string;
   owners: { name: string } | null;
 }
@@ -36,7 +38,7 @@ export default function StaffVendors() {
     const [v, p, pr] = await Promise.all([
       supabase.from("vendors").select("*").order("name"),
       supabase.from("owner_vendor_preferences").select("*").order("created_at"),
-      supabase.from("properties").select("id, address, city, owner_id, owners(name)").order("address"),
+      supabase.from("properties").select("id, address, city, county, owner_id, owners(name)").order("address"),
     ]);
     const error = v.error ?? p.error ?? pr.error;
     if (error) return { data: null, error };
@@ -51,13 +53,6 @@ export default function StaffVendors() {
   }, []);
 
   const d = data.data;
-  // Towns to offer on the vendor form: the website's list, property cities and any already in use.
-  const towns = useMemo(() => {
-    const all = [...DEFAULT_AREAS, ...(d?.props.map((p) => p.city) ?? []), ...(d?.vendors.flatMap((v) => v.areas) ?? [])];
-    const out: string[] = [];
-    for (const t of all) if (t !== ALL_AREAS && !out.some((o) => sameTown(o, t))) out.push(t.trim());
-    return out.sort((a, b) => a.localeCompare(b));
-  }, [d]);
 
   return (
     <>
@@ -65,8 +60,8 @@ export default function StaffVendors() {
         <div>
           <h1>Vendors</h1>
           <p className="sub">
-            Your trades, tagged by what they do and where they'll go, plus the vendors owners have asked you to call
-            first.
+            Your trades, tagged by what they do and the counties they'll work in, plus the vendors owners have asked
+            you to call first.
           </p>
         </div>
       </div>
@@ -75,7 +70,7 @@ export default function StaffVendors() {
         <>
           <Finder data={d} />
           <Review data={d} onDone={data.reload} />
-          <VendorList data={d} towns={towns} onDone={data.reload} />
+          <VendorList data={d} onDone={data.reload} />
         </>
       )}
     </>
@@ -83,7 +78,7 @@ export default function StaffVendors() {
 }
 
 // ---------------------------------------------------------------------------
-// Find someone: property + trade -> owner's pick first, then vendors covering that town.
+// Find someone: property + trade -> owner's pick first, then vendors covering that county.
 
 function Finder({ data }: { data: Data }) {
   const [propId, setPropId] = useState("");
@@ -103,7 +98,7 @@ function Finder({ data }: { data: Data }) {
   const pickedIds = new Set(ownerPicks.map((p) => p.vendor_id).filter(Boolean));
   const matches = prop
     ? data.vendors
-        .filter((v) => v.active && v.trades.includes(trade) && coversTown(v, prop.city) && !pickedIds.has(v.id))
+        .filter((v) => v.active && v.trades.includes(trade) && coversCounty(v, prop.county) && !pickedIds.has(v.id))
         .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name))
     : [];
 
@@ -117,7 +112,7 @@ function Finder({ data }: { data: Data }) {
               <option value="">Choose…</option>
               {data.props.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.address}, {p.city} · {p.owners?.name}
+                  {p.address}, {p.city}{p.county ? ` (${p.county} Co.)` : ""} · {p.owners?.name}
                 </option>
               ))}
             </select>
@@ -142,17 +137,23 @@ function Finder({ data }: { data: Data }) {
                 badge={p.status === "approved" ? `${prop.owners?.name}'s pick · call first` : `${prop.owners?.name}'s pick · not reviewed yet`}
                 badgeCls={p.status === "approved" ? "ok" : "warn"}
                 v={v ?? { name: p.name, phone: p.phone, email: p.email, notes: p.notes }}
-                warn={v && v.active && !coversTown(v, prop.city) ? `Not tagged for ${prop.city}; check they'll make the trip.` : v && !v.active ? "You've marked them as not using." : undefined}
+                warn={v && v.active && !coversCounty(v, prop.county) ? `Not tagged for ${prop.county ? countyLabel(prop.county) : prop.city}; check they'll make the trip.` : v && !v.active ? "You've marked them as not using." : undefined}
               />
             );
           })}
           {matches.map((v) => (
             <VendorCard key={v.id} v={v} />
           ))}
-          {!ownerPicks.length && !matches.length && (
+          {!prop.county && (
             <p className="muted">
-              No {TRADE_LABEL[trade].toLowerCase()} vendor covers {prop.city} yet. Add one below, or give an existing one
-              this town.
+              This property has no county yet, so only vendors set to All areas show. Add the county on the Properties
+              page.
+            </p>
+          )}
+          {!ownerPicks.length && !matches.length && prop.county && (
+            <p className="muted">
+              No {TRADE_LABEL[trade].toLowerCase()} vendor covers {countyLabel(prop.county)} yet. Add one below, or add
+              this county to an existing one.
             </p>
           )}
         </div>
@@ -187,6 +188,7 @@ function VendorCard({ v, badge, badgeCls, warn }: { v: Partial<Vendor> & { name:
         {v.contact_name && <span>{v.contact_name}</span>}
         {v.phone && <a href={`tel:${v.phone.replace(/[^\d+]/g, "")}`}>{v.phone}</a>}
         {v.email && <a href={`mailto:${v.email}`}>{v.email}</a>}
+        {v.location && <span className="muted">Based in {v.location}</span>}
       </div>
       {listed && (
         <div className="vendor-tags">
@@ -219,11 +221,12 @@ function Review({ data, onDone }: { data: Data; onDone: () => void }) {
     setError(null);
     let vendorId = link[p.id] || null;
     if (!vendorId) {
-      // Add to the list, covering the towns this owner's properties are in.
-      const cities = data.props
+      // Add to the list, covering the counties this owner's properties are in.
+      const counties = data.props
         .filter((x) => x.owner_id === p.owner_id && (p.property_id === null || x.id === p.property_id))
-        .map((x) => x.city);
-      const areas = cities.filter((c, i) => cities.findIndex((o) => sameTown(o, c)) === i);
+        .map((x) => x.county)
+        .filter((c): c is string => !!c);
+      const areas = [...new Set(counties)];
       const ins = await supabase
         .from("vendors")
         .insert({
@@ -329,9 +332,9 @@ function Review({ data, onDone }: { data: Data; onDone: () => void }) {
 // ---------------------------------------------------------------------------
 // The list itself, with filters and an add/edit form.
 
-function VendorList({ data, towns, onDone }: { data: Data; towns: string[]; onDone: () => void }) {
+function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
   const [trade, setTrade] = useState("");
-  const [town, setTown] = useState("");
+  const [counties, setCounties] = useState<string[]>([]);
   const [q, setQ] = useState("");
   const [showInactive, setShowInactive] = useState(false);
   const [editing, setEditing] = useState<Vendor | "new" | null>(null);
@@ -347,8 +350,8 @@ function VendorList({ data, towns, onDone }: { data: Data; towns: string[]; onDo
     (v) =>
       (showInactive || v.active) &&
       (!trade || v.trades.includes(trade)) &&
-      (!town || coversTown(v, town)) &&
-      (!q || `${v.name} ${v.contact_name ?? ""} ${v.notes ?? ""}`.toLowerCase().includes(q.toLowerCase())),
+      coversAny(v, counties) &&
+      (!q || `${v.name} ${v.contact_name ?? ""} ${v.location ?? ""} ${v.notes ?? ""}`.toLowerCase().includes(q.toLowerCase())),
   );
 
   return (
@@ -366,7 +369,6 @@ function VendorList({ data, towns, onDone }: { data: Data; towns: string[]; onDo
         <VendorForm
           key={editing === "new" ? "new" : editing.id}
           vendor={editing === "new" ? null : editing}
-          towns={towns}
           onCancel={() => setEditing(null)}
           onSaved={(msg) => {
             setEditing(null);
@@ -386,16 +388,12 @@ function VendorList({ data, towns, onDone }: { data: Data; towns: string[]; onDo
               ))}
             </select>
           </Field>
-          <Field label="Works in">
-            <select value={town} onChange={(e) => setTown(e.target.value)}>
-              <option value="">Anywhere</option>
-              {towns.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </Field>
+          <div className="field">
+            <span>Works in</span>
+            <MultiSelect options={COUNTIES} labels={countyLabel} value={counties} onChange={setCounties} placeholder="Any county" />
+          </div>
           <Field label="Search">
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name or notes" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name, town or notes" />
           </Field>
         </div>
         <label className="check">
@@ -422,12 +420,13 @@ function VendorList({ data, towns, onDone }: { data: Data; towns: string[]; onDo
                 {v.contact_name && <span>{v.contact_name}</span>}
                 {v.phone && <a href={`tel:${v.phone.replace(/[^\d+]/g, "")}`}>{v.phone}</a>}
                 {v.email && <a href={`mailto:${v.email}`}>{v.email}</a>}
+                {v.location && <span className="muted">Based in {v.location}</span>}
               </div>
               <div className="vendor-tags">
                 {v.trades.map((t) => (
                   <span className="tag trade" key={t}>{TRADE_LABEL[t] ?? t}</span>
                 ))}
-                <span className="tag">{v.areas.includes(ALL_AREAS) ? "All areas" : v.areas.join(", ")}</span>
+                <span className="tag">{v.areas.includes(ALL_AREAS) ? "All areas" : v.areas.map((a) => `${a} Co.`).join(", ")}</span>
                 <InsuranceTag expires={v.insurance_expires} />
                 {!v.w9_on_file && <span className="tag warn">No W-9</span>}
                 {picks.map((n) => (
@@ -445,35 +444,33 @@ function VendorList({ data, towns, onDone }: { data: Data; towns: string[]; onDo
 
 function VendorForm({
   vendor,
-  towns,
   onCancel,
   onSaved,
 }: {
   vendor: Vendor | null;
-  towns: string[];
   onCancel: () => void;
   onSaved: (msg: string) => void;
 }) {
   const [trades, setTrades] = useState<string[]>(vendor?.trades ?? []);
   const [everywhere, setEverywhere] = useState(vendor ? vendor.areas.includes(ALL_AREAS) : false);
   const [areas, setAreas] = useState<string[]>(vendor?.areas.filter((a) => a !== ALL_AREAS) ?? []);
-  const [extraTowns, setExtraTowns] = useState<string[]>([]);
-  const [newTown, setNewTown] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toggle = (list: string[], x: string) => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
-  const townOptions = [...towns, ...extraTowns.filter((t) => !towns.some((o) => sameTown(o, t)))];
+  // Keep any county already saved that isn't on the standard list.
+  const countyOptions = [...COUNTIES, ...areas.filter((a) => !COUNTIES.includes(a))];
 
   async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!trades.length) return setError("Pick at least one trade.");
-    if (!everywhere && !areas.length) return setError("Pick the towns they'll work in, or All areas.");
+    if (!everywhere && !areas.length) return setError("Pick the counties they'll work in, or All areas.");
     const v = formValues(e.currentTarget);
     const row = {
       name: v.name,
       contact_name: orNull(v.contact_name),
       phone: orNull(v.phone),
       email: orNull(v.email),
+      location: orNull(v.location),
       trades,
       areas: everywhere ? [ALL_AREAS] : areas,
       license_no: orNull(v.license_no),
@@ -514,6 +511,9 @@ function VendorForm({
         <Field label="Email (optional)">
           <input name="email" type="email" maxLength={200} defaultValue={vendor?.email ?? ""} />
         </Field>
+        <Field label="Located in (optional)">
+          <input name="location" maxLength={120} defaultValue={vendor?.location ?? ""} placeholder="Town where they're based" />
+        </Field>
       </div>
 
       <fieldset className="checks">
@@ -527,36 +527,18 @@ function VendorForm({
       </fieldset>
 
       <fieldset className="checks">
-        <legend>Areas they'll work in</legend>
+        <legend>Counties they'll work in</legend>
         <label className="check">
           <input type="checkbox" checked={everywhere} onChange={(e) => setEverywhere(e.target.checked)} />
           <span><b>All areas</b></span>
         </label>
         {!everywhere &&
-          townOptions.map((t) => (
-            <label className="check" key={t}>
-              <input type="checkbox" checked={areas.some((a) => sameTown(a, t))} onChange={() => setAreas((x) => (x.some((a) => sameTown(a, t)) ? x.filter((a) => !sameTown(a, t)) : [...x, t]))} />
-              <span>{t}</span>
+          countyOptions.map((c) => (
+            <label className="check" key={c}>
+              <input type="checkbox" checked={areas.includes(c)} onChange={() => setAreas((x) => toggle(x, c))} />
+              <span>{countyLabel(c)}</span>
             </label>
           ))}
-        {!everywhere && (
-          <span className="add-town">
-            <input value={newTown} onChange={(e) => setNewTown(e.target.value)} placeholder="Another town" maxLength={60} aria-label="Another town" />
-            <button
-              type="button"
-              className="btn btn-ghost btn-xs"
-              onClick={() => {
-                const t = newTown.trim();
-                if (!t) return;
-                setExtraTowns((x) => [...x, t]);
-                setAreas((x) => (x.some((a) => sameTown(a, t)) ? x : [...x, t]));
-                setNewTown("");
-              }}
-            >
-              Add
-            </button>
-          </span>
-        )}
       </fieldset>
 
       <div className="row">
@@ -601,5 +583,62 @@ function VendorForm({
         )}
       </div>
     </form>
+  );
+}
+
+// A compact multi-select: a button that opens a list of checkboxes.
+function MultiSelect({
+  options,
+  labels,
+  value,
+  onChange,
+  placeholder,
+}: {
+  options: string[];
+  labels: (o: string) => string;
+  value: string[];
+  onChange: (v: string[]) => void;
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open]);
+  const summary = value.length === 0 ? placeholder : value.length <= 2 ? value.map(labels).join(", ") : `${value.length} counties`;
+  return (
+    <div className="multi" ref={box}>
+      <button type="button" className="multi-btn" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <span className={value.length ? undefined : "muted"}>{summary}</span>
+      </button>
+      {open && (
+        <div className="multi-menu" role="group" aria-label={placeholder}>
+          {options.map((o) => (
+            <label className="check" key={o}>
+              <input
+                type="checkbox"
+                checked={value.includes(o)}
+                onChange={() => onChange(value.includes(o) ? value.filter((x) => x !== o) : [...value, o])}
+              />
+              <span>{labels(o)}</span>
+            </label>
+          ))}
+          {value.length > 0 && (
+            <button type="button" className="link-btn" onClick={() => onChange([])}>
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

@@ -18,6 +18,7 @@ import {
 } from "../../../lib/types";
 import { useQuery } from "../../../lib/useQuery";
 import { useRefs, type Refs } from "./useRefs";
+import { COUNTIES } from "../../../lib/vendors";
 
 const opts = (xs: readonly string[], labels?: Record<string, string>): Option[] =>
   xs.map((x) => ({ value: x, label: labels?.[x] ?? x }));
@@ -91,6 +92,13 @@ export function StaffProperties() {
               { key: "owner_id", label: "Owner", options: refs.owners, required: true },
               { key: "address", label: "Street address", required: true },
               { key: "city", label: "City", required: true },
+              {
+                key: "county",
+                label: "County",
+                options: COUNTIES.map((c) => ({ value: c, label: `${c} County` })),
+                hint: "Leave blank to fill in from the city.",
+                render: (r) => (r.county ? `${r.county}` : <span className="muted">—</span>),
+              },
               { key: "state", label: "State", default: "WI", required: true, list: false },
               { key: "zip", label: "ZIP", list: false },
               { key: "kind", label: "Type", placeholder: "Duplex, four-plex, single family…" },

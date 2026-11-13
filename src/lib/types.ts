@@ -26,6 +26,7 @@ export interface Property {
   owner_id: string;
   address: string;
   city: string;
+  county: string | null;
   state: string;
   zip: string | null;
   kind: string | null;
