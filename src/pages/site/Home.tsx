@@ -12,7 +12,7 @@ export default function Home() {
           <div className="reveal">
             <span className="kicker">Small portfolios, big-firm service</span>
             <h1>No door minimum. <em>No waiting until morning.</em></h1>
-            <p className="lede">Most managers in southeast Wisconsin want fifty doors before they'll return the call. DH Property Management starts with the duplex, the four-plex, the twelve you bought one at a time, and gives them the service a large firm gives its biggest client: maintenance requests answered in seconds at any hour, a written read on every property each month, and problems flagged before they turn into emergencies. A percentage of the rent we actually collect, and no markup on repairs.</p>
+            <p className="lede">Most managers in southeast Wisconsin want fifty doors before they'll return the call. DH Property Management starts with the duplex, the four-plex, the twelve you bought one at a time, and gives them the service a large firm gives its biggest client: maintenance requests taken any hour with a person on the phone for emergencies, a written read on every property each month, and problems flagged before they turn into emergencies. A percentage of the rent we actually collect, and no markup on repairs.</p>
             <div className="btn-row">
               <a className="btn btn-primary" href="#quote">Get a management quote</a>
               <a className="btn btn-ghost-dark" href="#pricing">See what we charge</a>
@@ -49,7 +49,7 @@ export default function Home() {
           <div className="num-grid">
             <div className="num">
               <b>24/7</b>
-              <p>Maintenance requests answered in seconds, any hour, with a real person on the phone for emergencies. No door minimum, either.</p>
+              <p>Maintenance requests taken any hour, with a real person on the phone for emergencies. No door minimum, either.</p>
             </div>
             <div className="num">
               <b>7&ndash;9%</b>
@@ -96,9 +96,9 @@ export default function Home() {
           <p className="lede" style={{ marginTop: "16px" }}>We built our own systems so a small office can respond faster and document more than the managers with fifty-door minimums. You don't see the systems. You see the results.</p>
           <div className="prob-grid">
             <div className="prob">
-              <h3>Answered in seconds, any hour</h3>
-              <p>A request at 11pm gets an instant reply that asks the right questions, collects photos, and walks the tenant through quick fixes like a tripped breaker or a GFCI reset.</p>
-              <p className="fix">Emergencies go straight to a phone call. Everything else is a vendor-ready work order by morning.</p>
+              <h3>Maintenance requests, any hour</h3>
+              <p>Tenants report problems through the portal at any hour. A guided form asks the questions a technician would, takes photos, and suggests quick fixes like a tripped breaker or a GFCI reset.</p>
+              <p className="fix">Emergencies go straight to a phone call. A person reviews every other request the same business day.</p>
             </div>
             <div className="prob">
               <h3>A written read on every property, every month</h3>

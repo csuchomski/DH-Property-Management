@@ -68,11 +68,11 @@ export default function Tenants() {
       <section id="maintenance" style={{ background: "var(--paper-2)" }}>
         <div className="wrap">
           <span className="kicker">Maintenance</span>
-          <h2>Submit it any hour and get an answer right away</h2>
+          <h2>Submit it any hour, with a photo, and you'll hear back same day</h2>
           <p className="lede" style={{ marginTop: "14px" }}>
-            The tenant portal's request form replies instantly. It's automated: it asks a few questions about the
-            problem, suggests quick fixes worth trying first, and tells you to call if it sounds like an emergency.
-            A person on our team reviews every request.
+            The request form in the tenant portal asks a few questions about the problem, suggests quick fixes worth
+            trying first, and tells you to call if it sounds like an emergency. A person on our team reviews every
+            request.
           </p>
           <div className="callout" style={{ marginTop: "28px" }}>
             <h3>Emergency? Don't use the portal.</h3>
