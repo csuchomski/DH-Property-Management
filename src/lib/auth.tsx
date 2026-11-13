@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase, supabaseConfigured } from "./supabase";
 import type { Profile } from "./types";
@@ -14,49 +14,65 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(supabaseConfigured);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Several auth events can fire close together right after a sign-in link lands.
+  // Each load gets a number and only the newest one may update state, so a slow,
+  // stale answer can never overwrite a newer one.
+  const latest = useRef(0);
 
   // link_my_account() returns the caller's profile, linking it to the owner or
   // tenant record with the same (confirmed) email the first time they sign in.
   const loadProfile = useCallback(async (s: Session | null) => {
+    const call = ++latest.current;
     if (!s) {
       setProfile(null);
+      setError(null);
       return;
     }
-    const { data, error } = await supabase.rpc("link_my_account");
-    if (error) {
-      setError(error.message);
+    let res = await supabase.rpc("link_my_account");
+    // Right after a sign-in the very first request can go out before the new session
+    // is attached and be refused as signed-out. Try once more before showing an error.
+    if (res.error && call === latest.current) {
+      await wait(600);
+      if (call !== latest.current) return;
+      res = await supabase.rpc("link_my_account");
+    }
+    if (call !== latest.current) return;
+    if (res.error) {
+      setError(res.error.message);
       setProfile(null);
     } else {
       setError(null);
-      setProfile(data as Profile);
+      setProfile(res.data as Profile);
     }
   }, []);
 
   useEffect(() => {
     if (!supabaseConfigured) return;
-    let active = true;
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      await loadProfile(data.session);
-      if (active) setLoading(false);
-    });
+    // INITIAL_SESSION fires once the client has read any sign-in token from the URL,
+    // so it is the single starting point; no separate getSession() call to race it.
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
-      // Supabase warns against awaiting other calls inside this callback.
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-        setTimeout(() => void loadProfile(s), 0);
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        // Supabase warns against awaiting other calls inside this callback.
+        setTimeout(() => {
+          void loadProfile(s).finally(() => {
+            if (event === "INITIAL_SESSION") setLoading(false);
+          });
+        }, 0);
+      }
+      // The client clears the token from the address bar but leaves a bare "#".
+      if (s && window.location.href.endsWith("#")) {
+        history.replaceState(history.state, "", window.location.href.slice(0, -1));
       }
     });
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
+    return () => sub.subscription.unsubscribe();
   }, [loadProfile]);
 
   const value: AuthState = {

@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { BrandMark } from "../../components/Brand";
 import { Field, FormMessage } from "../../components/Forms";
 import { SITE } from "../../lib/site";
-import { supabase } from "../../lib/supabase";
+import { consumeSignInLinkError, supabase } from "../../lib/supabase";
 
 // Supabase limits how many sign-in emails go out per hour (and per address, per minute).
 function friendlyError(err: { message: string; status?: number }) {
@@ -19,7 +19,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(consumeSignInLinkError);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -27,7 +27,9 @@ export default function Login() {
     setError(null);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: window.location.href },
+      // Return to this page, but never with a "#...": Supabase adds the sign-in token
+      // after a "#", and an existing one would hide it from the site.
+      options: { emailRedirectTo: window.location.origin + window.location.pathname + window.location.search },
     });
     setBusy(false);
     if (error) setError(friendlyError(error));
