@@ -3,7 +3,7 @@ import { useState } from "react";
 import { PhotoStrip } from "../../../components/Documents";
 import ResourceTable, { type Column, type Option } from "../../../components/ResourceTable";
 import { LeaseTag, Loading, PriorityTag, WorkOrderTag } from "../../../components/Status";
-import { fullDate, nextMonth, pct, shortDate, todayISO } from "../../../lib/format";
+import { fullDate, money, nextMonth, pct, shortDate, todayISO } from "../../../lib/format";
 import type { DocumentRow } from "../../../lib/documents";
 import { supabase } from "../../../lib/supabase";
 import {
@@ -447,48 +447,86 @@ export function StaffWorkOrders() {
               notIn={show === "open" ? { column: "status", values: ["closed", "declined"] } : undefined}
               transform={(v) => deriveLocation(refs, v)}
               columns={[
-                { key: "number", label: "WO", form: false },
-                { key: "opened_on", label: "Opened", type: "date", required: true, default: todayISO(), render: (r) => shortDate(r.opened_on as string) },
+                // List: six combined columns so the table fits without sideways scrolling.
+                {
+                  key: "number",
+                  label: "WO",
+                  form: false,
+                  render: (r) => (
+                    <>
+                      <b>{String(r.number ?? "").replace(/^WO-/, "")}</b>
+                      <span className="cell-sub">{shortDate(r.opened_on as string)}</span>
+                    </>
+                  ),
+                },
+                { key: "opened_on", label: "Opened", type: "date", required: true, default: todayISO(), list: false },
                 { key: "unit_id", label: "Unit", options: refs.units, list: false, hint: "Leave blank for common areas and pick the property." },
                 { key: "property_id", label: "Property", options: refs.properties, list: false },
                 {
                   key: "where",
                   label: "Where",
                   form: false,
-                  render: (r) => (r.unit_id ? unitLabel.get(r.unit_id as string) : `${propLabel.get(r.property_id as string)} — common`),
-                },
-                { key: "category", label: "Category", required: true, default: "General" },
-                { key: "title", label: "Summary", required: true },
-                { key: "description", label: "Details", type: "textarea", list: false },
-                {
-                  key: "photos",
-                  label: "Photos",
-                  form: false,
-                  render: (r) => <PhotoStrip docs={(photos.data ?? []).filter((p) => p.work_order_id === r.id)} />,
-                },
-                {
-                  // Set by triage when a tenant submits; blank on work orders staff open here.
-                  key: "priority",
-                  label: "Response",
-                  form: false,
                   render: (r) => (
                     <>
-                      <PriorityTag priority={(r.priority as Priority | null) ?? null} />
-                      {r.rule_id ? <div className="rule-chip">{r.rule_id as string}</div> : null}
+                      {r.unit_id ? unitLabel.get(r.unit_id as string) : `${propLabel.get(r.property_id as string)} — common`}
+                      <span className="cell-sub">{r.category as string}</span>
                     </>
                   ),
                 },
-                { key: "vendor", label: "Vendor" },
+                { key: "category", label: "Category", required: true, default: "General", list: false },
                 {
+                  key: "title",
+                  label: "Summary",
+                  required: true,
+                  render: (r) => (
+                    <>
+                      {r.title as string}
+                      {r.vendor ? <span className="cell-sub">{r.vendor as string}</span> : null}
+                      <PhotoStrip docs={(photos.data ?? []).filter((p) => p.work_order_id === r.id)} />
+                    </>
+                  ),
+                },
+                { key: "description", label: "Details", type: "textarea", list: false },
+                {
+                  // Response is set by triage when a tenant submits; blank on work orders staff open here.
                   key: "status",
                   label: "Status",
                   options: WO_STATUS,
                   required: true,
                   default: "open",
-                  render: (r) => <WorkOrderTag status={r.status as WorkOrderStatus} />,
+                  render: (r) => (
+                    <>
+                      <WorkOrderTag status={r.status as WorkOrderStatus} />
+                      {r.priority ? (
+                        <span className="cell-sub">
+                          <PriorityTag priority={(r.priority as Priority | null) ?? null} /> {r.rule_id ? <span className="rule-chip">{r.rule_id as string}</span> : null}
+                        </span>
+                      ) : null}
+                    </>
+                  ),
                 },
-                { key: "bid_amount", label: "Bid", type: "money" },
-                { key: "cost", label: "Final cost", type: "money" },
+                { key: "vendor", label: "Vendor", list: false },
+                {
+                  key: "bid_amount",
+                  label: "Cost",
+                  formLabel: "Bid",
+                  type: "money",
+                  render: (r) =>
+                    r.cost != null ? (
+                      <>
+                        {money(r.cost as number)}
+                        <span className="cell-sub">final</span>
+                      </>
+                    ) : r.bid_amount != null ? (
+                      <>
+                        {money(r.bid_amount as number)}
+                        <span className="cell-sub">bid</span>
+                      </>
+                    ) : (
+                      <span className="muted">—</span>
+                    ),
+                },
+                { key: "cost", label: "Final cost", type: "money", list: false },
                 { key: "closed_on", label: "Closed", type: "date", list: false },
                 { key: "is_emergency", label: "Emergency", type: "bool", list: false },
                 { key: "availability", label: "Tenant availability", list: false },

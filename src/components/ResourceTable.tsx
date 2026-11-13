@@ -14,6 +14,7 @@ type Row = Record<string, unknown> & { id: string };
 export interface Column {
   key: string;
   label: string;
+  formLabel?: string; // label in the edit form, when the list column shows something broader
   type?: "text" | "number" | "money" | "date" | "bool" | "textarea" | "select";
   options?: Option[];
   required?: boolean;
@@ -156,7 +157,7 @@ export default function ResourceTable(props: Props) {
                 const v = current ? current[c.key] : c.default;
                 const dv = v === null || v === undefined ? "" : String(v);
                 return (
-                  <Field key={c.key} label={c.label + (c.required ? "" : " (optional)")} hint={c.hint}>
+                  <Field key={c.key} label={(c.formLabel ?? c.label) + (c.required ? "" : " (optional)")} hint={c.hint}>
                     {c.options ? (
                       <select name={c.key} defaultValue={dv} required={c.required}>
                         {!c.required && <option value="">—</option>}
@@ -184,7 +185,7 @@ export default function ResourceTable(props: Props) {
           {formCols
             .filter((c) => c.type === "textarea")
             .map((c) => (
-              <Field key={c.key} label={c.label + (c.required ? "" : " (optional)")} hint={c.hint}>
+              <Field key={c.key} label={(c.formLabel ?? c.label) + (c.required ? "" : " (optional)")} hint={c.hint}>
                 <textarea name={c.key} defaultValue={current ? String(current[c.key] ?? "") : ""} required={c.required} />
               </Field>
             ))}
@@ -193,7 +194,7 @@ export default function ResourceTable(props: Props) {
             .map((c) => (
               <label className="check" key={c.key}>
                 <input type="checkbox" name={c.key} defaultChecked={Boolean(current ? current[c.key] : c.default)} />
-                <span>{c.label}</span>
+                <span>{c.formLabel ?? c.label}</span>
               </label>
             ))}
           <FormMessage error={error} />
@@ -212,7 +213,7 @@ export default function ResourceTable(props: Props) {
       {rows.data?.length === 0 && <p className="muted">Nothing here yet.</p>}
       {!!rows.data?.length && (
         <div className="tbl-wrap">
-          <table className="tbl">
+          <table className="tbl rt">
             <thead>
               <tr>
                 {listCols.map((c) => (
@@ -227,8 +228,8 @@ export default function ResourceTable(props: Props) {
               {rows.data.map((r) => (
                 <tr key={r.id} className={current?.id === r.id ? "editing" : undefined}>
                   {listCols.map((c) => (
-                    <td key={c.key} className={c.type === "money" || c.type === "number" ? "n" : undefined}>
-                      {display(c, r)}
+                    <td key={c.key} data-label={c.label} className={c.type === "money" || c.type === "number" ? "n" : undefined}>
+                      <div className="cell">{display(c, r)}</div>
                     </td>
                   ))}
                   <td className="actions">
