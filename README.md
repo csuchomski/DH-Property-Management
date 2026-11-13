@@ -46,7 +46,7 @@ The marketing site runs without `.env.local`. Without it, the forms and portal s
 
 ## Supabase setup
 
-1. **Apply the schema.** Already done on the DH Property Management project (both files in `supabase/migrations/`). For a new project, run them in order in the SQL editor, or with the CLI: `supabase link --project-ref <ref>` then `supabase db push`.
+1. **Apply the schema.** Already done on the DH Property Management project: every file in `supabase/migrations/` is applied there, and each file name starts with the version the live database recorded, so `supabase db push` sees the two as in step. For a new project, run them in order in the SQL editor, or with the CLI: `supabase link --project-ref <ref>` then `supabase db push`. When you change the live database, save the same SQL here under the version it was applied with.
 2. **Demo data (optional, never in production).** `supabase/seed.sql` loads the fictional Kettle Ridge portfolio from the sample reports. Its owner is `owner.demo@example.com` and one tenant is `tenant.demo@example.com`. Change those to addresses you control if you want to sign in as them.
 3. **Auth settings** (Authentication → URL Configuration): set the Site URL to where the site is hosted, and add `https://<your-domain>/portal/**` (plus `http://localhost:5173/portal/**` for development) to the redirect URLs. The email provider needs to be enabled; the portal uses one-time sign-in links.
 4. **Make yourself staff.** Sign in once at `/portal`, then run in the SQL editor:
