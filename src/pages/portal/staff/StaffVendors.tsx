@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Field, FormMessage, formValues, orNull } from "../../../components/Forms";
 import { Loading } from "../../../components/Status";
+import VendorHistory from "./VendorHistory";
 import { shortDate } from "../../../lib/format";
 import { supabase } from "../../../lib/supabase";
 import { useQuery } from "../../../lib/useQuery";
@@ -15,6 +16,8 @@ import {
   insuranceState,
   type Trade,
   type Vendor,
+  websiteHref,
+  websiteText,
   type VendorPreference,
 } from "../../../lib/vendors";
 
@@ -191,6 +194,9 @@ function VendorCard({ v, badge, badgeCls, warn }: { v: Partial<Vendor> & { name:
         {v.contact_name && <span>{v.contact_name}</span>}
         {v.phone && <a href={`tel:${v.phone.replace(/[^\d+]/g, "")}`}>{v.phone}</a>}
         {v.email && <a href={`mailto:${v.email}`}>{v.email}</a>}
+        {v.website && (
+          <a href={websiteHref(v.website)} target="_blank" rel="noopener noreferrer">{websiteText(v.website)}</a>
+        )}
         {v.location && <span className="muted">Based in {v.location}</span>}
       </div>
       {listed && (
@@ -342,6 +348,7 @@ function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
   const [showInactive, setShowInactive] = useState(false);
   const [editing, setEditing] = useState<Vendor | "new" | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [history, setHistory] = useState<string | null>(null);
 
   const picksFor = (id: string) =>
     data.prefs
@@ -424,6 +431,9 @@ function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
                 {v.contact_name && <span>{v.contact_name}</span>}
                 {v.phone && <a href={`tel:${v.phone.replace(/[^\d+]/g, "")}`}>{v.phone}</a>}
                 {v.email && <a href={`mailto:${v.email}`}>{v.email}</a>}
+                {v.website && (
+                  <a href={websiteHref(v.website)} target="_blank" rel="noopener noreferrer">{websiteText(v.website)}</a>
+                )}
                 {v.location && <span className="muted">Based in {v.location}</span>}
               </div>
               <div className="vendor-tags">
@@ -438,6 +448,10 @@ function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
                 ))}
               </div>
               {v.notes && <p className="vendor-notes">{v.notes}</p>}
+              <button className="link-btn history-toggle" aria-expanded={history === v.id} onClick={() => setHistory(history === v.id ? null : v.id)}>
+                {history === v.id ? "Hide history" : "History"}
+              </button>
+              {history === v.id && <VendorHistory vendor={v} />}
             </div>
           );
         })}
@@ -477,6 +491,7 @@ function VendorForm({
       phone: orNull(v.phone),
       email: orNull(v.email),
       location: orNull(v.location),
+      website: orNull(v.website),
       trades,
       areas: everywhere ? [ALL_AREAS] : areas,
       license_no: orNull(v.license_no),
@@ -516,6 +531,9 @@ function VendorForm({
         </Field>
         <Field label="Email (optional)">
           <input name="email" type="email" maxLength={200} defaultValue={vendor?.email ?? ""} />
+        </Field>
+        <Field label="Website (optional)">
+          <input name="website" maxLength={300} defaultValue={vendor?.website ?? ""} placeholder="kruegerplumbing.com" />
         </Field>
         <Field label="Located in (optional)">
           <input name="location" maxLength={120} defaultValue={vendor?.location ?? ""} placeholder="Town where they're based" />

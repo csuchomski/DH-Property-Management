@@ -126,3 +126,6 @@ ledger keeps a balance for each owner (receipts minus disbursements on their pro
   note; the owner is emailed either way, and staff are emailed when a suggestion comes in.
 - **Staff → Settings → Vendor trades**: rename, reorder, hide, add or delete trades. Renames show everywhere; hidden
   trades stay on existing vendors but aren't offered; a trade can only be deleted when no vendor or owner pick uses it.
+- **Vendor history**: each vendor card has a History view with every ledger entry linked to that vendor and totals by
+  year. In the Ledger, pick the vendor from your list (or type a payee that exactly matches a vendor's name) and the
+  entry is linked automatically; History also lists near-matches (e.g. "… LLC") with a one-click Link.

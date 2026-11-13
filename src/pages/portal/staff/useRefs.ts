@@ -20,6 +20,7 @@ export interface Refs {
   units: Option[];
   tenants: Option[];
   leases: Option[];
+  vendors: Option[];
   unitProperty: Map<string, string>;
   leaseUnit: Map<string, string>;
 }
@@ -27,7 +28,7 @@ export interface Refs {
 // Dropdown options for the staff forms: owners, properties, units, tenants, leases.
 export function useRefs() {
   return useQuery<Refs>(async () => {
-    const [owners, properties, units, tenants, leases] = await Promise.all([
+    const [owners, properties, units, tenants, leases, vendors] = await Promise.all([
       supabase.from("owners").select("id, name").order("name"),
       supabase.from("properties").select("id, address, city").order("address"),
       supabase.from("units").select("id, label, property_id, properties(address)"),
@@ -36,8 +37,9 @@ export function useRefs() {
         .from("leases")
         .select("id, status, unit_id, units(label, properties(address)), lease_tenants(tenants(full_name))")
         .order("start_date", { ascending: false }),
+      supabase.from("vendors").select("id, name, active").order("name"),
     ]);
-    const error = owners.error ?? properties.error ?? units.error ?? tenants.error ?? leases.error;
+    const error = owners.error ?? properties.error ?? units.error ?? tenants.error ?? leases.error ?? vendors.error;
     if (error) return { data: null, error };
 
     const unitRows = (units.data ?? []) as unknown as U[];
@@ -56,6 +58,7 @@ export function useRefs() {
             (l.lease_tenants ?? []).map((x) => x.tenants?.full_name).filter(Boolean).join(", ") || "no tenant"
           }${l.status === "ended" ? " (ended)" : ""}`,
         })),
+        vendors: (vendors.data ?? []).map((v) => ({ value: v.id, label: v.active ? v.name : `${v.name} (not using)` })),
         unitProperty: new Map(unitRows.map((u) => [u.id, u.property_id])),
         leaseUnit: new Map(leaseRows.map((l) => [l.id, l.unit_id])),
       },

@@ -254,3 +254,13 @@ fieldset.checks .check{min-width:150px}
 .settings-list .check{margin:0}
 .settings-list .link-btn:disabled{opacity:.35;cursor:default}
 .settings-add{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.history-toggle{align-self:flex-start;font-size:.88rem}
+.vendor-history{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;display:grid;gap:10px;min-width:0}
+.history-totals{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+.history-totals > div{background:#fff;padding:8px 12px;flex:1 1 110px}
+.history-totals span{display:block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#7C8A99;font-weight:600}
+.history-totals b{display:block;font-size:1.05rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.history-totals small{display:block;font-size:.76rem;color:#7C8A99}
+.history-loose{font-size:.9rem;background:#FDF6E7;border-radius:var(--r-sm);padding:10px 12px}
+.history-loose p{margin:0 0 4px}
+.vendor-results:has(.vendor-history){grid-template-columns:1fr}

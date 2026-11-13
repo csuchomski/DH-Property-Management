@@ -31,6 +31,7 @@ export interface Vendor {
   trades: string[];
   areas: string[]; // counties, or ["all"]
   location: string | null; // where the vendor is based
+  website: string | null;
   license_no: string | null;
   insurance_expires: string | null;
   w9_on_file: boolean;
@@ -61,6 +62,10 @@ export const coversCounty = (v: Pick<Vendor, "areas">, county: string | null) =>
 // Covers any of the chosen counties (none chosen = no filter).
 export const coversAny = (v: Pick<Vendor, "areas">, counties: string[]) =>
   !counties.length || v.areas.includes(ALL_AREAS) || counties.some((c) => coversCounty(v, c));
+
+// A clickable URL for a website typed as "kruegerplumbing.com".
+export const websiteHref = (w: string) => (/^https?:\/\//i.test(w) ? w : `https://${w}`);
+export const websiteText = (w: string) => w.replace(/^https?:\/\//i, "").replace(/\/$/, "");
 
 // Insurance on file and not expiring within 30 days.
 export function insuranceState(expires: string | null): "ok" | "soon" | "expired" | "none" {
