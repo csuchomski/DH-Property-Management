@@ -12,11 +12,14 @@ const NAV: Record<Role, { to: string; label: string }[]> = {
     { to: "/portal", label: "Overview" },
     { to: "/portal/statements", label: "Statements" },
     { to: "/portal/work-orders", label: "Maintenance" },
+    { to: "/portal/documents", label: "Documents" },
     { to: "/portal/tax", label: "Year-end tax" },
   ],
   tenant: [
     { to: "/portal", label: "My home" },
     { to: "/portal/maintenance", label: "Maintenance" },
+    { to: "/portal/documents", label: "Documents" },
+    { to: "/portal/move-out", label: "Moving out" },
   ],
   staff: [
     { to: "/portal", label: "Today" },
@@ -25,6 +28,8 @@ const NAV: Record<Role, { to: string; label: string }[]> = {
     { to: "/portal/transactions", label: "Ledger" },
     { to: "/portal/statements", label: "Statements" },
     { to: "/portal/leases", label: "Leases" },
+    { to: "/portal/documents", label: "Documents" },
+    { to: "/portal/move-outs", label: "Move-outs" },
     { to: "/portal/units", label: "Units" },
     { to: "/portal/properties", label: "Properties" },
     { to: "/portal/owners", label: "Owners" },

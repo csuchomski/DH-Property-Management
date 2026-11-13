@@ -53,7 +53,7 @@ export function useRefs() {
         leases: leaseRows.map((l) => ({
           value: l.id,
           label: `${unitLabel(l.units)} · ${
-            l.lease_tenants.map((x) => x.tenants?.full_name).filter(Boolean).join(", ") || "no tenant"
+            (l.lease_tenants ?? []).map((x) => x.tenants?.full_name).filter(Boolean).join(", ") || "no tenant"
           }${l.status === "ended" ? " (ended)" : ""}`,
         })),
         unitProperty: new Map(unitRows.map((u) => [u.id, u.property_id])),

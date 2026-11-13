@@ -18,6 +18,12 @@ const TaxSummary = lazy(() => import("./pages/portal/owner/TaxSummary"));
 const StaffToday = lazy(() => import("./pages/portal/staff/StaffToday"));
 const TenantHome = lazy(() => import("./pages/portal/tenant/TenantHome"));
 const TenantMaintenance = lazy(() => import("./pages/portal/tenant/TenantMaintenance"));
+const TenantDocuments = lazy(() => import("./pages/portal/tenant/TenantDocuments"));
+const TenantMoveOut = lazy(() => import("./pages/portal/tenant/TenantMoveOut"));
+const OwnerDocuments = lazy(() => import("./pages/portal/owner/OwnerDocuments"));
+const staffDocs = () => import("./pages/portal/staff/StaffDocuments");
+const StaffDocuments = lazy(() => staffDocs().then((m) => ({ default: m.StaffDocuments })));
+const StaffMoveOuts = lazy(() => staffDocs().then((m) => ({ default: m.StaffMoveOuts })));
 const SampleReports = lazy(() => import("./pages/site/SampleReports"));
 const staff = () => import("./pages/portal/staff/StaffRecords");
 const StaffAccounts = lazy(() => staff().then((m) => ({ default: m.StaffAccounts })));
@@ -57,6 +63,9 @@ export default function App() {
           <Route path="tax" element={<ByRole owner={<TaxSummary />} staff={<TaxSummary />} />} />
           <Route path="work-orders" element={<ByRole owner={<OwnerWorkOrders />} staff={<StaffWorkOrders />} />} />
           <Route path="maintenance" element={<ByRole tenant={<TenantMaintenance />} />} />
+          <Route path="documents" element={<ByRole tenant={<TenantDocuments />} owner={<OwnerDocuments />} staff={<StaffDocuments />} />} />
+          <Route path="move-out" element={<ByRole tenant={<TenantMoveOut />} />} />
+          <Route path="move-outs" element={<ByRole staff={<StaffMoveOuts />} />} />
           <Route path="requests" element={<ByRole staff={<StaffLeads />} />} />
           <Route path="transactions" element={<ByRole staff={<StaffTransactions />} />} />
           <Route path="leases" element={<ByRole staff={<StaffLeases />} />} />

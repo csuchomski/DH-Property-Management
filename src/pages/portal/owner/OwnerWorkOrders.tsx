@@ -1,7 +1,9 @@
 import { Approvals, WO_SELECT_BY_OWNER, woPlace, type WorkOrderRow } from "../../../components/Approvals";
+import { PhotoStrip } from "../../../components/Documents";
 import { useOwnerSelection } from "../../../components/OwnerPicker";
 import { Loading, PriorityTag, WorkOrderTag } from "../../../components/Status";
 import { acct, shortDate } from "../../../lib/format";
+import type { DocumentRow } from "../../../lib/documents";
 import { supabase } from "../../../lib/supabase";
 import { useQuery } from "../../../lib/useQuery";
 
@@ -18,6 +20,10 @@ export default function OwnerWorkOrders() {
             .order("number", { ascending: false })
             .limit(300)
         : { data: [], error: null },
+    [ownerId],
+  );
+  const photos = useQuery<DocumentRow[]>(
+    async () => await supabase.from("documents").select("*").eq("kind", "maintenance_photo").order("created_at"),
     [ownerId],
   );
   const all = wos.data ?? [];
@@ -90,6 +96,7 @@ export default function OwnerWorkOrders() {
                   <td>
                     <b>{w.title}</b>
                     {w.description ? <>. {w.description}</> : null}
+                    <PhotoStrip docs={(photos.data ?? []).filter((p) => p.work_order_id === w.id)} />
                     {!!w.triage_answers?.length && (
                       <ul className="triage-trail">
                         {w.triage_answers.map((t, i) => (

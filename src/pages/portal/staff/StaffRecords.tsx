@@ -1,8 +1,10 @@
 // Staff back office: record-keeping screens built on ResourceTable.
 import { useState } from "react";
+import { PhotoStrip } from "../../../components/Documents";
 import ResourceTable, { type Column, type Option } from "../../../components/ResourceTable";
 import { LeaseTag, Loading, PriorityTag, WorkOrderTag } from "../../../components/Status";
 import { fullDate, nextMonth, pct, shortDate, todayISO } from "../../../lib/format";
+import type { DocumentRow } from "../../../lib/documents";
 import { supabase } from "../../../lib/supabase";
 import {
   CATEGORY_LABEL,
@@ -407,6 +409,10 @@ const WO_STATUS = opts(["open", "awaiting_approval", "approved", "declined", "sc
 
 export function StaffWorkOrders() {
   const [show, setShow] = useState<"open" | "all">("open");
+  const photos = useQuery<DocumentRow[]>(
+    async () => await supabase.from("documents").select("*").eq("kind", "maintenance_photo").order("created_at"),
+    [],
+  );
   return (
     <WithRefs>
       {(refs) => {
@@ -454,6 +460,12 @@ export function StaffWorkOrders() {
                 { key: "category", label: "Category", required: true, default: "General" },
                 { key: "title", label: "Summary", required: true },
                 { key: "description", label: "Details", type: "textarea", list: false },
+                {
+                  key: "photos",
+                  label: "Photos",
+                  form: false,
+                  render: (r) => <PhotoStrip docs={(photos.data ?? []).filter((p) => p.work_order_id === r.id)} />,
+                },
                 {
                   // Set by triage when a tenant submits; blank on work orders staff open here.
                   key: "priority",

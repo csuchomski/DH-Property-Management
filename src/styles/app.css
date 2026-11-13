@@ -127,3 +127,22 @@
 .triage-trail li{padding-left:16px;position:relative}
 .triage-trail li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--pine);opacity:.6}
 .rule-chip{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;color:#7C8A99}
+
+/* documents */
+.doc-list{list-style:none;margin:6px 0 0;padding:0}
+.doc-list li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 16px;padding:10px 0;border-bottom:1px solid var(--line)}
+.doc-list li:last-child{border-bottom:none}
+.doc-main{display:grid;gap:2px;min-width:0}
+.doc-main b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.doc-main .muted{font-size:.82rem}
+.doc-actions{display:flex;gap:14px;align-items:center;font-size:.9rem;white-space:nowrap}
+.doc-actions a{color:var(--pine);font-weight:600}
+.link-btn.danger{color:var(--clay)}
+.sub-h{font-size:.9rem;margin-top:16px;color:var(--ink)}
+.note-text{font-size:.93rem;max-width:70ch;margin-bottom:6px}
+.upload-form{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.upload-form input[type="file"]{padding:7px;background:#FBFAF7}
+.photo-strip{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.photo-strip .photo{width:54px;height:54px;border-radius:6px;overflow:hidden;border:1px solid var(--line);display:grid;place-items:center;background:var(--paper-2);font-size:.7rem;text-align:center;color:var(--body);text-decoration:none}
+.photo-strip .photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-strip .photo.ph{opacity:.5}

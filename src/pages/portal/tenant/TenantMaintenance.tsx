@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
+import { PhotoStrip } from "../../../components/Documents";
 import { Field, FormMessage } from "../../../components/Forms";
 import { Loading, PriorityTag, WorkOrderTag } from "../../../components/Status";
+import { PHOTO_ACCEPT, checkFile, tenantUpload, type DocumentRow } from "../../../lib/documents";
 import { shortDate } from "../../../lib/format";
 import { SITE } from "../../../lib/site";
 import { supabase } from "../../../lib/supabase";
@@ -16,11 +18,18 @@ const STEPS = ["Problem", "Checks", "Details", "Access"];
 interface Sent {
   number: string | null;
   sla: string;
+  photoNote: string | null;
 }
+
+const MAX_PHOTOS = 6;
 
 export default function TenantMaintenance() {
   const leases = useQuery(loadMyLeases, []);
   const requests = useQuery<MyWorkOrder[]>(async () => await supabase.rpc("my_work_orders"), []);
+  const photos = useQuery<DocumentRow[]>(
+    async () => await supabase.from("documents").select("*").eq("kind", "maintenance_photo").order("created_at"),
+    [],
+  );
   const current = leases.data?.filter((l) => l.status !== "ended" && l.units) ?? [];
 
   const [step, setStep] = useState(0);
@@ -31,6 +40,7 @@ export default function TenantMaintenance() {
   const [availability, setAvailability] = useState("");
   const [pet, setPet] = useState("");
   const [entry, setEntry] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<Sent | null>(null);
@@ -49,6 +59,7 @@ export default function TenantMaintenance() {
     setAvailability("");
     setPet("");
     setEntry(false);
+    setFiles([]);
     setError(null);
     setSent(null);
     setClosedOut(false);
@@ -78,6 +89,11 @@ export default function TenantMaintenance() {
     if (step === 2) {
       if (title.trim().length < 3) {
         setError("A few words on what's wrong, so we know what to send.");
+        return;
+      }
+      const bad = files.map(checkFile).find(Boolean);
+      if (bad) {
+        setError(bad);
         return;
       }
       setStep(3);
@@ -112,11 +128,27 @@ export default function TenantMaintenance() {
       setError(err.message);
       return;
     }
-    const wo = data as { number: string | null; rule_id: string | null };
+    const wo = data as { id: string; number: string | null; rule_id: string | null };
+    // Photos go up after the request exists, attached to it. A failed photo never loses the request.
+    let photoNote: string | null = null;
+    if (files.length) {
+      let failed = 0;
+      for (const [i, f] of files.entries()) {
+        try {
+          await tenantUpload({ workOrderId: wo.id }, f, { kind: "maintenance_photo", title: `Photo ${i + 1}` });
+        } catch {
+          failed++;
+        }
+      }
+      photoNote = failed
+        ? `${files.length - failed} of ${files.length} photos attached. Text the others to ${SITE.phone}.`
+        : `${files.length} photo${files.length === 1 ? "" : "s"} attached.`;
+      photos.reload();
+    }
     // The promise shown to the tenant comes from the same rule that set the priority.
     const { data: decided } = await supabase.rpc("triage_decision", { p_answers: answers });
     const sla = Array.isArray(decided) && decided[0]?.sla ? (decided[0].sla as string) : "We'll be in touch with a window.";
-    setSent({ number: wo.number, sla });
+    setSent({ number: wo.number, sla, photoNote });
     requests.reload();
   }
 
@@ -150,6 +182,7 @@ export default function TenantMaintenance() {
               <div className="triage-done">
                 <h2>Sent{sent.number ? ` — ${sent.number}` : ""}</h2>
                 <p>{sent.sla}</p>
+                {sent.photoNote && <p className="muted">{sent.photoNote}</p>}
                 <p className="muted">
                   You'll get a text when a technician is scheduled. Reply to this request from the list below if anything
                   changes.
@@ -260,6 +293,19 @@ export default function TenantMaintenance() {
                         placeholder="What you noticed, when it started, anything you already tried."
                       />
                     </Field>
+                    <Field label="Photos (optional)" hint={`Up to ${MAX_PHOTOS}. One of the problem, and one of the model plate if it's an appliance.`}>
+                      <input
+                        type="file"
+                        accept={PHOTO_ACCEPT}
+                        multiple
+                        onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, MAX_PHOTOS))}
+                      />
+                    </Field>
+                    {files.length > 0 && (
+                      <p className="muted" style={{ fontSize: ".85rem" }}>
+                        {files.length} photo{files.length === 1 ? "" : "s"} ready: {files.map((f) => f.name).join(", ")}
+                      </p>
+                    )}
                   </>
                 )}
 
@@ -342,6 +388,7 @@ export default function TenantMaintenance() {
                     <td>
                       <b>{w.title}</b>
                       <div className="muted" style={{ fontSize: ".85rem" }}>{w.category}</div>
+                      <PhotoStrip docs={(photos.data ?? []).filter((p) => p.work_order_id === w.id)} />
                     </td>
                     <td>
                       <WorkOrderTag status={w.status} closedOn={w.closed_on ? shortDate(w.closed_on) : null} />{" "}
