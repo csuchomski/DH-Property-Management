@@ -66,6 +66,20 @@ Supabase's built-in sender only allows a few emails an hour, so sign-in emails g
 3. Under Authentication → Rate Limits, raise "emails sent per hour" (for example to 30). Gmail allows about 500 a day.
 4. Under Authentication → Emails → Templates, set the subject `Your DH Property Management sign-in link` and paste `supabase/templates/magic_link.html` into both the **Magic Link** and **Confirm signup** templates.
 
+### Email alerts
+
+Database triggers queue messages in `email_outbox`. The `send-emails` Edge Function (`supabase/functions/send-emails`) delivers them, and pg_cron wakes it once a minute while anything is waiting. Failed sends retry up to five times. Staff can read the outbox. The database change is in `supabase/pending/email_alerts.sql` until it is applied to the live project.
+
+| Who | When |
+| --- | --- |
+| Staff (every staff account, or the list in `app_settings.staff_alert_emails`) | New tenant maintenance request (urgent ones flagged), owner approved or declined a bid, move-out notice or change, tenant upload, quote request, rental application |
+| Owner | A bid needs their approval; a tenant gave notice |
+| Tenant | Their request was scheduled or completed; lease, addendum or deposit statement posted; walkthrough scheduled; deposit settled |
+
+Sender settings (Supabase → Edge Functions → Secrets):
+- **Gmail:** `SMTP_USER` = `dhpropertymgmtmke@gmail.com`, `SMTP_PASS` = the Gmail app password, and `EMAIL_FROM` = `DH Property Management <dhpropertymgmtmke@gmail.com>`. `SMTP_HOST` and `SMTP_PORT` default to `smtp.gmail.com` and `465`.
+- **Or an email service:** `RESEND_API_KEY`, which needs a domain verified in Resend, plus `EMAIL_FROM` on that domain. Use this if Supabase blocks the SMTP connection.
+
 ### How access works
 
 - Every sign-in creates a `profiles` row with no role, which sees nothing.

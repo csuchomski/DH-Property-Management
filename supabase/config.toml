@@ -1,0 +1,7 @@
+# Only the settings this repo relies on; everything else uses the CLI defaults.
+project_id = "tnohtkfgaaabiddukaoc"
+
+# Delivers queued alert emails. Called by pg_cron; it only sends what is already queued,
+# so it does not need a signed-in caller.
+[functions.send-emails]
+verify_jwt = false
