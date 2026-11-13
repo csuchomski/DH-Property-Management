@@ -68,7 +68,7 @@ Supabase's built-in sender only allows a few emails an hour, so sign-in emails g
 
 ### Email alerts
 
-Database triggers queue messages in `email_outbox`. The `send-emails` Edge Function (`supabase/functions/send-emails`) delivers them, and pg_cron wakes it once a minute while anything is waiting. Failed sends retry up to five times. Staff can read the outbox. The database change is in `supabase/pending/email_alerts.sql` until it is applied to the live project.
+Database triggers queue messages in `email_outbox`. The `send-emails` Edge Function (`supabase/functions/send-emails`) delivers them, and pg_cron wakes it once a minute while anything is waiting. Failed sends retry up to five times. Staff can read the outbox.
 
 | Who | When |
 | --- | --- |
