@@ -24,6 +24,8 @@ const OwnerDocuments = lazy(() => import("./pages/portal/owner/OwnerDocuments"))
 const staffDocs = () => import("./pages/portal/staff/StaffDocuments");
 const StaffDocuments = lazy(() => staffDocs().then((m) => ({ default: m.StaffDocuments })));
 const StaffMoveOuts = lazy(() => staffDocs().then((m) => ({ default: m.StaffMoveOuts })));
+const StaffVendors = lazy(() => import("./pages/portal/staff/StaffVendors"));
+const OwnerVendors = lazy(() => import("./pages/portal/owner/OwnerVendors"));
 const StaffTrust = lazy(() => import("./pages/portal/staff/StaffTrust"));
 const SampleReports = lazy(() => import("./pages/site/SampleReports"));
 const staff = () => import("./pages/portal/staff/StaffRecords");
@@ -70,6 +72,7 @@ export default function App() {
           <Route path="requests" element={<ByRole staff={<StaffLeads />} />} />
           <Route path="transactions" element={<ByRole staff={<StaffTransactions />} />} />
           <Route path="trust" element={<ByRole staff={<StaffTrust />} />} />
+          <Route path="vendors" element={<ByRole owner={<OwnerVendors />} staff={<StaffVendors />} />} />
           <Route path="leases" element={<ByRole staff={<StaffLeases />} />} />
           <Route path="units" element={<ByRole staff={<StaffUnits />} />} />
           <Route path="properties" element={<ByRole staff={<StaffProperties />} />} />

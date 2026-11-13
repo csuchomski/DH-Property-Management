@@ -114,3 +114,12 @@ ledger keeps a balance for each owner (receipts minus disbursements on their pro
 - **Month-end reconciliation** (Portal → Trust): enter each bank statement balance plus in-transit/outstanding items.
   The page checks bank vs. book vs. the sum of owner ledgers, saves the record, and prints.
 - Owners see their trust balance on their overview and statements, and payouts under "Transfers".
+
+## Vendors
+
+- **Staff → Vendors**: your own list, each vendor tagged with trades and the towns they'll work in (or all areas),
+  plus license, insurance date, W-9 and a rating. "Find someone for a repair" takes a property and a trade and lists
+  the owner's approved pick first, then your vendors who cover that property's town.
+- **Owner → Vendors**: owners name the plumber, electrician and so on they want called first, for all their
+  properties or one. Staff approve (adding the vendor to the list, or matching an existing one) or decline with a
+  note; the owner is emailed either way, and staff are emailed when a suggestion comes in.

@@ -207,3 +207,31 @@
   .trust-recon .btn{display:none}
   .recon{break-inside:avoid}
 }
+
+/* Vendors */
+.vendor-results{display:grid;gap:12px;margin-top:14px}
+@media(min-width:900px){.vendor-results{grid-template-columns:1fr 1fr}}
+.vendor-card{border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;background:#FBFAF7;display:flex;flex-direction:column;gap:6px;min-width:0}
+.vendor-card.inactive{opacity:.6}
+.vendor-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vendor-top b{color:var(--ink);font-size:1rem}
+.vendor-contact{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:.92rem}
+.vendor-contact a{color:var(--pine);font-weight:600;overflow-wrap:anywhere}
+.vendor-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag.trade{background:#E6ECF3;color:#33475C}
+.vendor-notes{font-size:.88rem;color:#5F6D7A;margin:0;white-space:pre-line}
+.stars{color:var(--amber);letter-spacing:1px;font-size:.9rem}
+.review-row{display:flex;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
+.review-row:first-of-type{border-top:none}
+.review-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.review-actions select{max-width:220px}
+.plain-list{margin:8px 0 0;padding-left:18px;font-size:.92rem;display:grid;gap:4px}
+fieldset.checks{border:1px solid var(--line);border-radius:var(--r-md);padding:10px 14px 12px;margin:12px 0;display:flex;flex-wrap:wrap;gap:6px 16px}
+fieldset.checks legend{font-weight:600;font-size:.88rem;padding:0 4px;color:var(--ink)}
+fieldset.checks .check{min-width:150px}
+.add-town{display:inline-flex;gap:6px;align-items:center}
+.add-town input{width:150px}
+.filters{margin-top:6px}
+/* Inline inputs outside a .field (vendor review, add town, trust payout, reconciliation) */
+.review-actions select,.add-town input,.recon .kv input,.tbl td input[type=number]{font:inherit;font-size:.9rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 9px}
+.review-actions select:focus,.add-town input:focus,.recon .kv input:focus,.tbl td input[type=number]:focus{outline:3px solid rgba(31,94,82,.35);border-color:var(--pine)}

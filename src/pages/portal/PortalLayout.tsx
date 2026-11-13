@@ -26,6 +26,7 @@ const NAV: Record<Role, NavGroup[]> = {
         { to: "/portal/statements", label: "Statements" },
         { to: "/portal/work-orders", label: "Maintenance" },
         { to: "/portal/documents", label: "Documents" },
+        { to: "/portal/vendors", label: "Vendors" },
         { to: "/portal/tax", label: "Year-end tax" },
       ],
     },
@@ -47,6 +48,7 @@ const NAV: Record<Role, NavGroup[]> = {
       items: [
         { to: "/portal/requests", label: "Leads" },
         { to: "/portal/work-orders", label: "Work orders" },
+        { to: "/portal/vendors", label: "Vendors" },
         { to: "/portal/move-outs", label: "Move-outs" },
         { to: "/portal/documents", label: "Documents" },
       ],
