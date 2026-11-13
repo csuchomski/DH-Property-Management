@@ -107,11 +107,21 @@ export interface Transaction {
   amount: number;
 }
 
-export const RECEIPT_CATEGORIES = ["rent", "late_fee", "other_income"] as const;
-export const DISBURSEMENT_CATEGORIES = [
+// Income: counts on statements and Schedule E.
+export const INCOME_CATEGORIES = ["rent", "late_fee", "other_income"] as const;
+// Expenses paid from trust on the owner's behalf.
+export const EXPENSE_CATEGORIES = [
   "repairs", "cleaning_maintenance", "grounds", "utilities", "supplies",
   "advertising", "legal_professional", "insurance", "taxes", "other",
 ] as const;
+// Money moving in or out of trust that is neither income nor an expense.
+export const TRANSFER_CATEGORIES = ["owner_contribution", "management_fee", "owner_distribution"] as const;
+
+export const RECEIPT_CATEGORIES = [...INCOME_CATEGORIES, "owner_contribution"] as const;
+export const DISBURSEMENT_CATEGORIES = [...EXPENSE_CATEGORIES, "management_fee", "owner_distribution"] as const;
+
+export const isIncome = (c: string) => (INCOME_CATEGORIES as readonly string[]).includes(c);
+export const isExpense = (c: string) => (EXPENSE_CATEGORIES as readonly string[]).includes(c);
 
 export const CATEGORY_LABEL: Record<string, string> = {
   rent: "Rent",
@@ -127,6 +137,9 @@ export const CATEGORY_LABEL: Record<string, string> = {
   insurance: "Insurance",
   taxes: "Taxes",
   other: "Other",
+  owner_contribution: "Owner contribution",
+  management_fee: "Management fee to DH",
+  owner_distribution: "Owner payout",
 };
 
 // Schedule E line for each category. Management fees (line 11) are computed, not stored.

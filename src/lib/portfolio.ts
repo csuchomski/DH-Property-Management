@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { FEE_CATEGORIES, type Lease, type Owner, type Property, type Transaction, type Unit } from "./types";
+import { FEE_CATEGORIES, isExpense, isIncome, type Lease, type Owner, type Property, type Transaction, type Unit } from "./types";
 
 export type UnitWithLeases = Unit & { leases: Lease[] };
 export type PropertyWithUnits = Property & { units: UnitWithLeases[] };
@@ -79,8 +79,9 @@ export function summarizeByProperty(txns: TxnWithProperty[], rate: number): Prop
   for (const t of txns) groups.set(t.property_id, [...(groups.get(t.property_id) ?? []), t]);
   return [...groups.entries()]
     .map(([id, ts]) => {
-      const collected = sum(ts.filter((t) => t.kind === "receipt"));
-      const operating = sum(ts.filter((t) => t.kind === "disbursement"));
+      // Owner contributions, fee transfers and payouts move money but aren't income or expense.
+      const collected = sum(ts.filter((t) => t.kind === "receipt" && isIncome(t.category)));
+      const operating = sum(ts.filter((t) => t.kind === "disbursement" && isExpense(t.category)));
       const fee = managementFee(ts, rate);
       return {
         property: { id, address: ts[0].properties.address, city: ts[0].properties.city },
@@ -91,4 +92,17 @@ export function summarizeByProperty(txns: TxnWithProperty[], rate: number): Prop
       };
     })
     .sort((a, b) => a.property.address.localeCompare(b.property.address));
+}
+
+export interface TrustPosition {
+  property_id: string;
+  address: string;
+  balance: number;
+  fee_due: number;
+}
+
+// The owner's rent-trust balance by property, from the database (owners see only theirs).
+export async function loadTrustPosition(ownerId: string, asOf?: string) {
+  const res = await supabase.rpc("owner_trust_position", asOf ? { p_owner: ownerId, p_as_of: asOf } : { p_owner: ownerId });
+  return { data: res.data as TrustPosition[] | null, error: res.error };
 }

@@ -3,10 +3,11 @@ import { useOwnerSelection } from "../../../components/OwnerPicker";
 import { Loading } from "../../../components/Status";
 import { acct } from "../../../lib/format";
 import { loadPortfolio, loadTransactions, managementFee, sum, type TxnWithProperty } from "../../../lib/portfolio";
-import { CATEGORY_LABEL, SCHEDULE_E } from "../../../lib/types";
+import { CATEGORY_LABEL, SCHEDULE_E, isIncome } from "../../../lib/types";
 import { useQuery } from "../../../lib/useQuery";
 
-const lineFor = (category: string) => {
+const lineFor = (category: string): number | string => {
+  if (["owner_contribution", "management_fee", "owner_distribution"].includes(category)) return "transfer";
   if (["rent", "late_fee", "other_income"].includes(category)) return 3;
   return SCHEDULE_E.find((l) => l.categories.includes(category))?.line ?? 19;
 };
@@ -47,7 +48,7 @@ export default function TaxSummary() {
   const cols = properties.map((p) => {
     const ts = rows.filter((t) => t.property_id === p.id);
     const expense = (cats: string[]) => sum(ts.filter((t) => t.kind === "disbursement" && cats.includes(t.category)));
-    const rents = sum(ts.filter((t) => t.kind === "receipt"));
+    const rents = sum(ts.filter((t) => t.kind === "receipt" && isIncome(t.category)));
     const fee = managementFee(ts, rate);
     const lines = SCHEDULE_E.map((l) => expense(l.categories));
     const total = Math.round((lines.reduce((a, b) => a + b, 0) + fee) * 100) / 100;

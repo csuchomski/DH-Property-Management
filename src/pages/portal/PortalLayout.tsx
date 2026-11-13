@@ -26,6 +26,7 @@ const NAV: Record<Role, { to: string; label: string }[]> = {
     { to: "/portal/requests", label: "Leads" },
     { to: "/portal/work-orders", label: "Work orders" },
     { to: "/portal/transactions", label: "Ledger" },
+    { to: "/portal/trust", label: "Trust" },
     { to: "/portal/statements", label: "Statements" },
     { to: "/portal/leases", label: "Leases" },
     { to: "/portal/documents", label: "Documents" },

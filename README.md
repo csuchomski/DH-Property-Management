@@ -99,3 +99,18 @@ These rules were tested against a local Postgres 16 database with a stubbed `aut
   - Document storage for leases and invoices.
   - Owner ACH distributions.
   - Email notifications, for example to an owner when a bid needs approval or to staff on a new lead.
+
+## Trust accounting
+
+Rent goes into one pooled **rent trust account**; security deposits go into a separate **deposit trust account**. The
+ledger keeps a balance for each owner (receipts minus disbursements on their properties):
+
+- **Ledger categories.** Owner contributions (money in), the management-fee transfer to DH and owner payouts (money out)
+  are *transfers*: they change the trust balance but never count as income or expense on statements or Schedule E.
+- **No borrowing.** The database refuses any ledger entry that would take an owner's balance below zero. Record the
+  rent or an owner contribution first.
+- **Payouts** (Portal → Trust): each owner's balance, fee due, reserve target and the amount available. "Record" moves
+  the fee to DH and records the payout in one step. Send the bank transfer yourself.
+- **Month-end reconciliation** (Portal → Trust): enter each bank statement balance plus in-transit/outstanding items.
+  The page checks bank vs. book vs. the sum of owner ledgers, saves the record, and prints.
+- Owners see their trust balance on their overview and statements, and payouts under "Transfers".

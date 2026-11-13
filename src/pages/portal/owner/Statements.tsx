@@ -2,8 +2,8 @@ import { useSearchParams } from "react-router-dom";
 import { useOwnerSelection } from "../../../components/OwnerPicker";
 import { Loading } from "../../../components/Status";
 import { acct, money, monthLabel, nextMonth, pct, shortDate } from "../../../lib/format";
-import { currentLease, loadPortfolio, loadTransactions, managementFee, sum, summarizeByProperty } from "../../../lib/portfolio";
-import { CATEGORY_LABEL } from "../../../lib/types";
+import { currentLease, loadPortfolio, loadTransactions, loadTrustPosition, managementFee, sum, summarizeByProperty } from "../../../lib/portfolio";
+import { CATEGORY_LABEL, isExpense, isIncome } from "../../../lib/types";
 import { useQuery } from "../../../lib/useQuery";
 
 // Last complete month, as YYYY-MM.
@@ -23,12 +23,22 @@ export default function Statements() {
 
   const portfolio = useQuery(async () => (ownerId ? loadPortfolio(ownerId) : { data: null, error: null }), [ownerId]);
   const txns = useQuery(async () => (ownerId ? loadTransactions(ownerId, from, to) : { data: [], error: null }), [ownerId, month]);
+  // Trust balance at the close of the month (the day before the next month starts).
+  const monthEnd = (() => {
+    const d = new Date(`${to}T12:00:00`);
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  })();
+  const trust = useQuery(async () => (ownerId ? loadTrustPosition(ownerId, monthEnd) : { data: [], error: null }), [ownerId, monthEnd]);
 
   const owner = portfolio.data?.owner;
   const rate = Number(owner?.mgmt_rate ?? 0);
   const rows = txns.data ?? [];
-  const receipts = rows.filter((t) => t.kind === "receipt");
-  const disb = rows.filter((t) => t.kind === "disbursement");
+  const receipts = rows.filter((t) => t.kind === "receipt" && isIncome(t.category));
+  const disb = rows.filter((t) => t.kind === "disbursement" && isExpense(t.category));
+  const transfers = rows.filter((t) => !isIncome(t.category) && !isExpense(t.category));
+  const paidOut = sum(transfers.filter((t) => t.category === "owner_distribution"));
+  const trustBalance = (trust.data ?? []).reduce((s, r) => s + Number(r.balance), 0);
   const byProperty = summarizeByProperty(rows, rate);
   const collected = sum(receipts);
   const operating = sum(disb);
@@ -93,9 +103,12 @@ export default function Statements() {
           <small>{pct(rate)} of collected rent</small>
         </div>
         <div>
-          <span>Net to you</span>
+          <span>Net income</span>
           <b>{money(net)}</b>
-          <small>{owner?.ach_last4 ? `ACH ending ${owner.ach_last4}` : "By ACH"}</small>
+          <small>
+            {paidOut ? `${money(paidOut)} paid out` : "Nothing paid out yet"}
+            {owner?.ach_last4 ? ` · ACH ending ${owner.ach_last4}` : ""}
+          </small>
         </div>
       </div>
 
@@ -215,17 +228,53 @@ export default function Statements() {
         </>
       )}
 
+      {transfers.length > 0 && (
+        <div className="card">
+          <h2>Transfers</h2>
+          <p className="muted" style={{ fontSize: ".9rem" }}>
+            Money moved in or out of your trust balance. These are not income or expenses.
+          </p>
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Property</th>
+                  <th>Ref</th>
+                  <th className="n">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transfers.map((t) => (
+                  <tr key={t.id}>
+                    <td>{shortDate(t.txn_date)}</td>
+                    <td>{CATEGORY_LABEL[t.category] ?? t.category}</td>
+                    <td>{t.properties.address}</td>
+                    <td>{t.reference ?? ""}</td>
+                    <td className={t.kind === "receipt" ? "n" : "n neg"}>{acct(Number(t.amount), t.kind !== "receipt")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="card">
         <h2>Reserve and trust</h2>
         <dl className="kv">
+          <dt>Your balance in the rent trust account, {shortDate(monthEnd)}</dt>
+          <dd>{trust.error ? "—" : money(trustBalance)}</dd>
           <dt>Operating reserve target</dt>
           <dd>{money(owner?.reserve_target)}</dd>
           <dt>Security deposits held in trust</dt>
           <dd>{money(deposits)}</dd>
         </dl>
         <p className="muted" style={{ fontSize: ".85rem", marginTop: 10 }}>
-          Deposits sit in a separate trust account, are never used for operating costs, and are excluded from your
-          distribution.
+          Your balance is rent and contributions received for your properties, less bills paid and payouts made. Each
+          month DH keeps the reserve target and pays out the rest after the management fee. Deposits sit in a separate
+          trust account, are never used for operating costs, and are excluded from your distribution.
         </p>
       </div>
     </>

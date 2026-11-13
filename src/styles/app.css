@@ -166,3 +166,16 @@
   .tbl.rt td:first-child{white-space:normal}
 }
 .tbl.rt .cell{min-width:0}
+
+/* Trust reconciliation */
+.recon-grid{display:grid;gap:16px;margin-top:14px}
+@media(min-width:900px){.recon-grid{grid-template-columns:1fr 1fr}}
+.recon{border:1px solid var(--line);border-radius:var(--r-md);padding:16px;background:#FBFAF7}
+.recon .kv{align-items:center}
+.recon .kv input{width:100%;max-width:160px}
+.recon .kv dd{font-variant-numeric:tabular-nums}
+@media print{
+  .app-top,.app-nav,.noprint,.page-head .controls .btn{display:none !important}
+  .trust-recon .btn{display:none}
+  .recon{break-inside:avoid}
+}

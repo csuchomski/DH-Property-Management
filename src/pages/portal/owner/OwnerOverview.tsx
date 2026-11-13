@@ -2,13 +2,14 @@ import { Approvals, WO_SELECT_BY_OWNER, type WorkOrderRow } from "../../../compo
 import { useOwnerSelection } from "../../../components/OwnerPicker";
 import { LeaseTag, Loading } from "../../../components/Status";
 import { acct, fullDate, money, pct } from "../../../lib/format";
-import { currentLease, loadPortfolio, tenantNames } from "../../../lib/portfolio";
+import { currentLease, loadPortfolio, loadTrustPosition, tenantNames } from "../../../lib/portfolio";
 import { supabase } from "../../../lib/supabase";
 import { useQuery } from "../../../lib/useQuery";
 
 export default function OwnerOverview() {
   const { ownerId, picker } = useOwnerSelection();
   const portfolio = useQuery(async () => (ownerId ? loadPortfolio(ownerId) : { data: null, error: null }), [ownerId]);
+  const trust = useQuery(async () => (ownerId ? loadTrustPosition(ownerId) : { data: [], error: null }), [ownerId]);
   const approvals = useQuery<WorkOrderRow[]>(
     async () =>
       ownerId
@@ -28,6 +29,8 @@ export default function OwnerOverview() {
   const market = units.reduce((s, u) => s + Number(u.market_rent ?? 0), 0);
   const inPlace = leased.reduce((s, l) => s + Number(l.rent), 0);
   const deposits = leased.reduce((s, l) => s + Number(l.deposit), 0);
+  const trustBalance = (trust.data ?? []).reduce((s, r) => s + Number(r.balance), 0);
+  const reserve = Number(p?.owner.reserve_target ?? 0);
 
   return (
     <>
@@ -67,9 +70,15 @@ export default function OwnerOverview() {
               <small>In-place ÷ market rent</small>
             </div>
             <div>
-              <span>Deposits in trust</span>
-              <b>{money(deposits)}</b>
-              <small>Held per lease</small>
+              <span>Your trust balance</span>
+              <b className={trustBalance < 0 ? "neg" : undefined}>{trust.data ? money(trustBalance) : "—"}</b>
+              <small>
+                {trust.data
+                  ? trustBalance < reserve
+                    ? `Below your ${money(reserve)} reserve`
+                    : `Reserve ${money(reserve)} held`
+                  : "Rent trust account"}
+              </small>
             </div>
           </div>
 
