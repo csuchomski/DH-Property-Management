@@ -1,7 +1,7 @@
 // Staff back office: record-keeping screens built on ResourceTable.
 import { useState } from "react";
 import ResourceTable, { type Column, type Option } from "../../../components/ResourceTable";
-import { LeaseTag, Loading, WorkOrderTag } from "../../../components/Status";
+import { LeaseTag, Loading, PriorityTag, WorkOrderTag } from "../../../components/Status";
 import { fullDate, nextMonth, pct, shortDate, todayISO } from "../../../lib/format";
 import { supabase } from "../../../lib/supabase";
 import {
@@ -11,6 +11,7 @@ import {
   RECEIPT_CATEGORIES,
   WO_STATUS_LABEL,
   type LeaseStatus,
+  type Priority,
   type WorkOrderStatus,
 } from "../../../lib/types";
 import { useQuery } from "../../../lib/useQuery";
@@ -453,6 +454,18 @@ export function StaffWorkOrders() {
                 { key: "category", label: "Category", required: true, default: "General" },
                 { key: "title", label: "Summary", required: true },
                 { key: "description", label: "Details", type: "textarea", list: false },
+                {
+                  // Set by triage when a tenant submits; blank on work orders staff open here.
+                  key: "priority",
+                  label: "Response",
+                  form: false,
+                  render: (r) => (
+                    <>
+                      <PriorityTag priority={(r.priority as Priority | null) ?? null} />
+                      {r.rule_id ? <div className="rule-chip">{r.rule_id as string}</div> : null}
+                    </>
+                  ),
+                },
                 { key: "vendor", label: "Vendor" },
                 {
                   key: "status",

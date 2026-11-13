@@ -61,6 +61,16 @@ export interface Lease {
 }
 
 export type WorkOrderStatus = "open" | "awaiting_approval" | "approved" | "declined" | "scheduled" | "closed";
+
+// Set by triage_decision() in the database when a tenant submits. Null on work orders
+// staff opened directly, which never went through triage.
+export type Priority = "P1" | "P2" | "P3";
+
+export interface TriageAnswer {
+  q: string;
+  a: string;
+}
+
 export interface WorkOrder {
   id: string;
   number: string | null;
@@ -77,6 +87,9 @@ export interface WorkOrder {
   cost: number | null;
   closed_on: string | null;
   decision_note: string | null;
+  priority: Priority | null;
+  rule_id: string | null;
+  triage_answers: TriageAnswer[];
 }
 
 export interface Transaction {
@@ -138,6 +151,20 @@ export const WO_STATUS_LABEL: Record<WorkOrderStatus, string> = {
   declined: "Declined",
   scheduled: "Scheduled",
   closed: "Closed",
+};
+
+// What each priority promises. Shown to tenants and owners, so it has to match the sla
+// text in triage_decision() — change both together.
+export const PRIORITY_LABEL: Record<Priority, string> = {
+  P1: "Tonight",
+  P2: "Scheduled",
+  P3: "Next visit",
+};
+
+export const PRIORITY_HINT: Record<Priority, string> = {
+  P1: "Dispatched the same night — damage or safety if it waits",
+  P2: "Next business day or two",
+  P3: "Batched with the next trip to that building",
 };
 
 export const LEASE_STATUS_LABEL: Record<LeaseStatus, string> = {

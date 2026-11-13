@@ -78,3 +78,52 @@
 .kv dt{color:#7C8A99}
 .kv dd{margin:0;color:var(--ink);font-weight:500}
 .tbl td:first-child{white-space:nowrap}
+
+/* Maintenance triage: the stepped tenant form. */
+.tag.crit{background:#F8E6E1;color:#A8321E}
+
+.triage-steps{display:flex;gap:6px;list-style:none;margin:0 0 18px;padding:0;counter-reset:s}
+.triage-steps li{flex:1;counter-increment:s;font-size:.76rem;color:#7C8A99;font-weight:600}
+.triage-steps li::before{content:"";display:block;height:3px;border-radius:2px;background:var(--line);margin-bottom:7px}
+.triage-steps li.on::before{background:var(--amber)}
+.triage-steps li.done::before{background:var(--pine)}
+.triage-steps li.on{color:var(--ink)}
+
+.triage-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+@media(min-width:700px){.triage-pick{grid-template-columns:repeat(3,1fr)}}
+.triage-pick .pick{
+  border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:var(--r-md);
+  padding:13px 12px;text-align:left;font-weight:600;font-size:.93rem;line-height:1.25;cursor:pointer;
+}
+.triage-pick .pick small{display:block;font-weight:400;font-size:.76rem;color:#7C8A99;margin-top:3px}
+.triage-pick .pick:hover{border-color:var(--pine)}
+
+.triage-q{border:none;margin:0 0 16px;padding:0}
+.triage-q legend{font-weight:600;font-size:.93rem;padding:0;margin-bottom:7px;color:var(--ink)}
+.triage-opts{display:flex;flex-wrap:wrap;gap:6px}
+.triage-opts .opt input{position:absolute;opacity:0;width:0;height:0}
+.triage-opts .opt span{
+  display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 13px;
+  font-size:.86rem;font-weight:500;background:#fff;cursor:pointer;
+}
+.triage-opts .opt:hover span{border-color:var(--pine)}
+.triage-opts .opt input:focus-visible + span{outline:3px solid rgba(31,94,82,.35)}
+.triage-opts .opt input:checked + span{background:var(--pine);border-color:var(--pine);color:#fff;font-weight:600}
+
+.triage-help{background:var(--pine-soft);border:1px solid var(--pine);border-radius:var(--r-md);padding:13px 14px;margin:14px 0}
+.triage-help h3{color:var(--pine);font-size:.97rem;margin:0 0 6px}
+.triage-help p{font-size:.88rem;margin:0}
+.triage-help .btn{margin-top:10px}
+
+.triage-nav{display:flex;gap:8px;margin-top:18px}
+.triage-nav .btn{flex:1}
+@media(min-width:560px){.triage-nav .btn{flex:0 0 auto;min-width:140px}}
+
+.triage-done h2{margin-bottom:6px}
+.triage-done p{font-size:.95rem;margin-bottom:10px}
+.triage-done .btn{margin-top:8px}
+
+.triage-trail{margin:8px 0 0;padding:0;list-style:none;font-size:.85rem;color:#6C7C8D}
+.triage-trail li{padding-left:16px;position:relative}
+.triage-trail li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--pine);opacity:.6}
+.rule-chip{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.76rem;color:#7C8A99}

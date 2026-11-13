@@ -1,54 +1,133 @@
 import { useState, type FormEvent } from "react";
-import { Field, FormMessage, formValues, orNull } from "../../../components/Forms";
-import { Loading, WorkOrderTag } from "../../../components/Status";
+import { Field, FormMessage } from "../../../components/Forms";
+import { Loading, PriorityTag, WorkOrderTag } from "../../../components/Status";
 import { shortDate } from "../../../lib/format";
 import { SITE } from "../../../lib/site";
 import { supabase } from "../../../lib/supabase";
 import { useQuery } from "../../../lib/useQuery";
 import { leasePlace, loadMyLeases, type MyWorkOrder } from "./tenantData";
+import {
+  CATEGORIES, answerTrail, categoryById, emergencyStop, selfHelp, visibleQuestions,
+  type Answers,
+} from "./triage";
 
-const CATEGORIES = ["Plumbing", "Electrical", "Appliance", "Heating / cooling", "Doors, windows & locks", "Pests", "Exterior", "General"];
+const STEPS = ["Problem", "Checks", "Details", "Access"];
+
+interface Sent {
+  number: string | null;
+  sla: string;
+}
 
 export default function TenantMaintenance() {
   const leases = useQuery(loadMyLeases, []);
   const requests = useQuery<MyWorkOrder[]>(async () => await supabase.rpc("my_work_orders"), []);
   const current = leases.data?.filter((l) => l.status !== "ended" && l.units) ?? [];
-  const [busy, setBusy] = useState(false);
-  const [ok, setOk] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  async function submit(e: FormEvent<HTMLFormElement>) {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Answers>({});
+  const [unitId, setUnitId] = useState("");
+  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [pet, setPet] = useState("");
+  const [entry, setEntry] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState<Sent | null>(null);
+  const [closedOut, setClosedOut] = useState(false);
+
+  const cat = categoryById(answers.cat);
+  const questions = visibleQuestions(answers);
+  const stop = emergencyStop(answers);
+  const help = selfHelp(answers);
+
+  function reset() {
+    setStep(0);
+    setAnswers({});
+    setDescription("");
+    setTitle("");
+    setAvailability("");
+    setPet("");
+    setEntry(false);
+    setError(null);
+    setSent(null);
+    setClosedOut(false);
+  }
+
+  function pickCategory(id: string) {
+    setAnswers({ cat: id });
+    setError(null);
+    setStep(1);
+  }
+
+  function answer(id: string, value: string) {
+    setAnswers((prev) => ({ ...prev, [id]: value }));
+  }
+
+  function next() {
+    setError(null);
+    if (step === 1) {
+      const unanswered = questions.find((q) => !answers[q.id]);
+      if (unanswered) {
+        setError("Answer all the checks — they decide how fast someone comes.");
+        return;
+      }
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      if (title.trim().length < 3) {
+        setError("A few words on what's wrong, so we know what to send.");
+        return;
+      }
+      setStep(3);
+      return;
+    }
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  }
+
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    const form = e.currentTarget;
-    const v = formValues(form);
+    if (!unitId && current.length === 1) setUnitId(current[0].units!.id);
+    const unit = unitId || current[0]?.units?.id;
+    if (!unit) {
+      setError("Pick which unit this is for.");
+      return;
+    }
     setBusy(true);
     setError(null);
-    setOk(null);
-    const { data, error } = await supabase.rpc("submit_maintenance_request", {
-      p_unit_id: v.unit_id,
-      p_title: v.title,
-      p_description: [v.description, v.worse ? `Getting worse: ${v.worse}` : ""].filter(Boolean).join("\n\n"),
-      p_category: v.category,
-      p_entry_permission: v.entry_permission === "on",
-      p_pet_on_site: orNull(v.pet_on_site),
-      p_availability: orNull(v.availability),
+    const { data, error: err } = await supabase.rpc("submit_maintenance_request", {
+      p_unit_id: unit,
+      p_title: title.trim(),
+      p_description: description.trim(),
+      p_category: cat?.category ?? "General",
+      p_entry_permission: entry,
+      p_pet_on_site: pet.trim() || null,
+      p_availability: availability.trim() || null,
+      p_answers: answers,
+      p_trail: answerTrail(answers),
     });
     setBusy(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      form.reset();
-      setOk(`Request #${(data as MyWorkOrder).number} is in. We'll acknowledge it by the end of the business day and schedule it within three.`);
-      requests.reload();
+    if (err) {
+      setError(err.message);
+      return;
     }
+    const wo = data as { number: string | null; rule_id: string | null };
+    // The promise shown to the tenant comes from the same rule that set the priority.
+    const { data: decided } = await supabase.rpc("triage_decision", { p_answers: answers });
+    const sla = Array.isArray(decided) && decided[0]?.sla ? (decided[0].sla as string) : "We'll be in touch with a window.";
+    setSent({ number: wo.number, sla });
+    requests.reload();
   }
+
+  const noLease = !!leases.data && current.length === 0;
 
   return (
     <>
       <div className="page-head">
         <div>
           <h1>Report maintenance</h1>
-          <p className="sub">Submit it with details and you'll hear back the same business day.</p>
+          <p className="sub">A few questions, then we know how fast to come. Under a minute.</p>
         </div>
       </div>
 
@@ -62,58 +141,181 @@ export default function TenantMaintenance() {
       </div>
 
       <div className="card">
-        <h2>New request</h2>
         <Loading error={leases.error} loading={leases.loading && !leases.data} />
-        {leases.data && current.length === 0 ? (
-          <p className="notice">We couldn't find a current lease for your account. Call {SITE.phone}.</p>
-        ) : (
-          <form className="form" onSubmit={submit}>
-            <div className="row">
-              <Field label="Unit">
-                <select name="unit_id" required>
-                  {current.map((l) => (
-                    <option key={l.id} value={l.units!.id}>
-                      {leasePlace(l)}
-                    </option>
+        {noLease && <p className="notice">We couldn't find a current lease for your account. Call {SITE.phone}.</p>}
+
+        {!noLease && !!leases.data && (
+          <>
+            {sent ? (
+              <div className="triage-done">
+                <h2>Sent{sent.number ? ` — ${sent.number}` : ""}</h2>
+                <p>{sent.sla}</p>
+                <p className="muted">
+                  You'll get a text when a technician is scheduled. Reply to this request from the list below if anything
+                  changes.
+                </p>
+                <button className="btn" type="button" onClick={reset}>Report something else</button>
+              </div>
+            ) : closedOut ? (
+              <div className="triage-done">
+                <h2>Closed out</h2>
+                <p>Nothing was dispatched and nothing is billed. We logged it to your unit in case it happens again.</p>
+                <button className="btn" type="button" onClick={reset}>Report something else</button>
+              </div>
+            ) : (
+              <>
+                <ol className="triage-steps">
+                  {STEPS.map((label, i) => (
+                    <li key={label} className={i === step ? "on" : i < step ? "done" : ""}>
+                      <span>{label}</span>
+                    </li>
                   ))}
-                </select>
-              </Field>
-              <Field label="Category">
-                <select name="category" defaultValue="General">
-                  {CATEGORIES.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-            <Field label="What's wrong, in a few words">
-              <input name="title" required maxLength={200} placeholder="e.g. Kitchen faucet drips" />
-            </Field>
-            <Field label="Details" hint="For an appliance, include the brand and model from the model plate.">
-              <textarea name="description" maxLength={3000} />
-            </Field>
-            <Field label="Is it getting worse or holding steady?">
-              <input name="worse" maxLength={300} />
-            </Field>
-            <div className="row">
-              <Field label="Two windows a technician can come">
-                <input name="availability" maxLength={500} placeholder="e.g. Tue after 3pm, Thu morning" />
-              </Field>
-              <Field label="Pets we should know about before entry">
-                <input name="pet_on_site" maxLength={500} />
-              </Field>
-            </div>
-            <label className="check">
-              <input type="checkbox" name="entry_permission" />
-              <span>You may use a key to enter if I'm not home. We still give notice before anyone enters.</span>
-            </label>
-            <FormMessage ok={ok} error={error} />
-            <div>
-              <button className="btn btn-primary" type="submit" disabled={busy || current.length === 0}>
-                {busy ? "Sending…" : "Submit request"}
-              </button>
-            </div>
-          </form>
+                </ol>
+
+                {step === 0 && (
+                  <>
+                    <h2>What's the problem?</h2>
+                    <p className="muted">Pick the closest one. You can explain in your own words in a moment.</p>
+                    <div className="triage-pick">
+                      {CATEGORIES.map((c) => (
+                        <button key={c.id} type="button" className="pick" onClick={() => pickCategory(c.id)}>
+                          {c.label}
+                          <small>{c.hint}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {step === 1 && (
+                  <>
+                    <h2>A few quick checks</h2>
+                    <p className="muted">These decide how fast someone comes, and they often solve it outright.</p>
+
+                    {stop && (
+                      <div className="callout" role="alert">
+                        <h3>{stop.heading}</h3>
+                        <p>{stop.body}</p>
+                        <p style={{ marginTop: 10 }}>
+                          <a className="btn btn-primary" href={SITE.phoneHref}>Call {SITE.phone}</a>
+                        </p>
+                      </div>
+                    )}
+
+                    {!stop && help && (
+                      <div className="triage-help">
+                        <h3>{help.heading}</h3>
+                        <p>{help.body}</p>
+                        {help.resolved && (
+                          <button className="btn btn-pine btn-xs" type="button" onClick={() => setClosedOut(true)}>
+                            That fixed it — close this
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {questions.length === 0 && (
+                      <p className="muted">Nothing to check for this one — carry on and tell us what's going on.</p>
+                    )}
+
+                    {questions.map((q) => (
+                      <fieldset key={q.id} className="triage-q">
+                        <legend>{q.q}</legend>
+                        <div className="triage-opts">
+                          {q.options.map(([value, label]) => (
+                            <label key={value} className="opt">
+                              <input
+                                type="radio"
+                                name={q.id}
+                                value={value}
+                                checked={answers[q.id] === value}
+                                onChange={() => answer(q.id, value)}
+                              />
+                              <span>{label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                    ))}
+                  </>
+                )}
+
+                {step === 2 && (
+                  <>
+                    <h2>Tell us what's going on</h2>
+                    <Field label="What's wrong, in a few words">
+                      <input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        maxLength={200}
+                        placeholder="e.g. Kitchen faucet drips"
+                      />
+                    </Field>
+                    <Field label="Details" hint="For an appliance, include the brand and model from the model plate.">
+                      <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        maxLength={3000}
+                        rows={4}
+                        placeholder="What you noticed, when it started, anything you already tried."
+                      />
+                    </Field>
+                  </>
+                )}
+
+                {step === 3 && (
+                  <form className="form" onSubmit={submit}>
+                    <h2>Getting in</h2>
+                    <p className="muted">You always get notice before anyone enters.</p>
+                    {current.length > 1 && (
+                      <Field label="Unit">
+                        <select value={unitId} onChange={(e) => setUnitId(e.target.value)} required>
+                          <option value="">Choose…</option>
+                          {current.map((l) => (
+                            <option key={l.id} value={l.units!.id}>{leasePlace(l)}</option>
+                          ))}
+                        </select>
+                      </Field>
+                    )}
+                    <div className="row">
+                      <Field label="When is someone usually around?">
+                        <input
+                          value={availability}
+                          onChange={(e) => setAvailability(e.target.value)}
+                          maxLength={500}
+                          placeholder="e.g. Tue after 3pm, Thu morning"
+                        />
+                      </Field>
+                      <Field label="Pets we should know about before entry">
+                        <input value={pet} onChange={(e) => setPet(e.target.value)} maxLength={500} />
+                      </Field>
+                    </div>
+                    <label className="check">
+                      <input type="checkbox" checked={entry} onChange={(e) => setEntry(e.target.checked)} />
+                      <span>You may use a key to enter if I'm not home. We still give notice before anyone enters.</span>
+                    </label>
+                    <FormMessage error={error} />
+                    <div className="triage-nav">
+                      <button className="btn" type="button" onClick={() => setStep(2)}>Back</button>
+                      <button className="btn btn-primary" type="submit" disabled={busy}>
+                        {busy ? "Sending…" : "Send request"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {step > 0 && step < 3 && (
+                  <>
+                    <FormMessage error={error} />
+                    <div className="triage-nav">
+                      <button className="btn" type="button" onClick={() => setStep(step - 1)}>Back</button>
+                      <button className="btn btn-primary" type="button" onClick={next}>Continue</button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </>
         )}
       </div>
 
@@ -142,7 +344,8 @@ export default function TenantMaintenance() {
                       <div className="muted" style={{ fontSize: ".85rem" }}>{w.category}</div>
                     </td>
                     <td>
-                      <WorkOrderTag status={w.status} closedOn={w.closed_on ? shortDate(w.closed_on) : null} />
+                      <WorkOrderTag status={w.status} closedOn={w.closed_on ? shortDate(w.closed_on) : null} />{" "}
+                      <PriorityTag priority={w.priority} />
                     </td>
                   </tr>
                 ))}

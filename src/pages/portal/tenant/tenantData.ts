@@ -1,5 +1,5 @@
 import { supabase } from "../../../lib/supabase";
-import type { Lease, WorkOrderStatus } from "../../../lib/types";
+import type { Lease, Priority, WorkOrderStatus } from "../../../lib/types";
 
 export type TenantLease = Lease & {
   units: { id: string; label: string; properties: { address: string; city: string } | null } | null;
@@ -24,6 +24,7 @@ export interface MyWorkOrder {
   status: WorkOrderStatus;
   is_emergency: boolean;
   closed_on: string | null;
+  priority: Priority | null;
 }
 
 export const leasePlace = (l: TenantLease) =>
