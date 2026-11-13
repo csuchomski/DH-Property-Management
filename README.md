@@ -25,7 +25,7 @@ Statements and tax summaries are calculated from the `transactions` ledger. The 
 
 ## Deployment
 
-`.github/workflows/deploy-pages.yml` builds the site and publishes it to GitHub Pages on every push to `claude/upbeat-curie-v1kvq0` or `main`: https://dhpropertymgmt.github.io/DH-Property-Management/
+`.github/workflows/deploy-pages.yml` builds the site and publishes it to GitHub Pages on every push to `claude/upbeat-curie-v1kvq0` or `main`: https://csuchomski.github.io/DH-Property-Management/
 
 - It builds with `BASE_PATH=/DH-Property-Management/`, because project pages are served from a sub-path. All internal links go through `withBase()` in `src/lib/base.ts`.
 - It copies `index.html` to `404.html` so that links like `/portal` load the app.
