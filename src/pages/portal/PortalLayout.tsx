@@ -1,5 +1,6 @@
 import { withBase } from "../../lib/base";
-import { NavLink, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { BrandMark } from "../../components/Brand";
 import { useAuth } from "../../lib/auth";
 import { SITE } from "../../lib/site";
@@ -7,44 +8,113 @@ import { supabaseConfigured } from "../../lib/supabase";
 import type { Role } from "../../lib/types";
 import Login from "./Login";
 
-const NAV: Record<Role, { to: string; label: string }[]> = {
+interface NavItem {
+  to: string;
+  label: string;
+}
+interface NavGroup {
+  heading?: string;
+  items: NavItem[];
+}
+
+// Owners and tenants have a handful of pages: one top bar. Staff get a grouped sidebar.
+const NAV: Record<Role, NavGroup[]> = {
   owner: [
-    { to: "/portal", label: "Overview" },
-    { to: "/portal/statements", label: "Statements" },
-    { to: "/portal/work-orders", label: "Maintenance" },
-    { to: "/portal/documents", label: "Documents" },
-    { to: "/portal/tax", label: "Year-end tax" },
+    {
+      items: [
+        { to: "/portal", label: "Overview" },
+        { to: "/portal/statements", label: "Statements" },
+        { to: "/portal/work-orders", label: "Maintenance" },
+        { to: "/portal/documents", label: "Documents" },
+        { to: "/portal/tax", label: "Year-end tax" },
+      ],
+    },
   ],
   tenant: [
-    { to: "/portal", label: "My home" },
-    { to: "/portal/maintenance", label: "Maintenance" },
-    { to: "/portal/documents", label: "Documents" },
-    { to: "/portal/move-out", label: "Moving out" },
+    {
+      items: [
+        { to: "/portal", label: "My home" },
+        { to: "/portal/maintenance", label: "Maintenance" },
+        { to: "/portal/documents", label: "Documents" },
+        { to: "/portal/move-out", label: "Moving out" },
+      ],
+    },
   ],
   staff: [
-    { to: "/portal", label: "Today" },
-    { to: "/portal/requests", label: "Leads" },
-    { to: "/portal/work-orders", label: "Work orders" },
-    { to: "/portal/transactions", label: "Ledger" },
-    { to: "/portal/trust", label: "Trust" },
-    { to: "/portal/statements", label: "Statements" },
-    { to: "/portal/leases", label: "Leases" },
-    { to: "/portal/documents", label: "Documents" },
-    { to: "/portal/move-outs", label: "Move-outs" },
-    { to: "/portal/units", label: "Units" },
-    { to: "/portal/properties", label: "Properties" },
-    { to: "/portal/owners", label: "Owners" },
-    { to: "/portal/tenants", label: "Tenants" },
-    { to: "/portal/accounts", label: "Accounts" },
+    { items: [{ to: "/portal", label: "Today" }] },
+    {
+      heading: "Operations",
+      items: [
+        { to: "/portal/requests", label: "Leads" },
+        { to: "/portal/work-orders", label: "Work orders" },
+        { to: "/portal/move-outs", label: "Move-outs" },
+        { to: "/portal/documents", label: "Documents" },
+      ],
+    },
+    {
+      heading: "Money",
+      items: [
+        { to: "/portal/transactions", label: "Ledger" },
+        { to: "/portal/trust", label: "Trust" },
+        { to: "/portal/statements", label: "Owner statements" },
+        { to: "/portal/tax", label: "Tax summary" },
+      ],
+    },
+    {
+      heading: "Records",
+      items: [
+        { to: "/portal/properties", label: "Properties" },
+        { to: "/portal/units", label: "Units" },
+        { to: "/portal/leases", label: "Leases" },
+        { to: "/portal/tenants", label: "Tenants" },
+        { to: "/portal/owners", label: "Owners" },
+      ],
+    },
+    { heading: "Admin", items: [{ to: "/portal/accounts", label: "Accounts" }] },
   ],
 };
 
-function Shell({ children, nav }: { children: React.ReactNode; nav?: { to: string; label: string }[] }) {
-  const { session, profile, signOut } = useAuth();
+function NavLinks({ items, onPick }: { items: NavItem[]; onPick?: () => void }) {
   return (
-    <div className="app">
+    <>
+      {items.map((n) => (
+        <NavLink key={n.to} to={n.to} end={n.to === "/portal"} onClick={onPick}>
+          {n.label}
+        </NavLink>
+      ))}
+    </>
+  );
+}
+
+function Shell({ children, nav, side = false }: { children: React.ReactNode; nav?: NavGroup[]; side?: boolean }) {
+  const { session, profile, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  const sidebar = side && !!nav;
+
+  return (
+    <div className={sidebar ? "app app-side" : "app"}>
       <div className="app-top">
-        <div className="wrap app-top-in">
+        <div className={sidebar ? "app-top-in app-top-full" : "wrap app-top-in"}>
+          {sidebar && (
+            <button
+              className="menu-btn"
+              aria-label="Menu"
+              aria-expanded={open}
+              aria-controls="side-nav"
+              onClick={() => setOpen((o) => !o)}
+            >
+              <span aria-hidden="true" />
+              Menu
+            </button>
+          )}
           <a className="brand" href={withBase("/")}>
             <BrandMark />
             DH<span className="bn-rest"> Property Management</span>
@@ -62,20 +132,35 @@ function Shell({ children, nav }: { children: React.ReactNode; nav?: { to: strin
           )}
         </div>
       </div>
-      {nav && (
+
+      {nav && !sidebar && (
         <nav className="app-nav" aria-label="Portal">
           <div className="wrap">
-            {nav.map((n) => (
-              <NavLink key={n.to} to={n.to} end={n.to === "/portal"}>
-                {n.label}
-              </NavLink>
-            ))}
+            <NavLinks items={nav.flatMap((g) => g.items)} />
           </div>
         </nav>
       )}
-      <div className="app-main">
-        <div className="wrap">{children}</div>
-      </div>
+
+      {sidebar ? (
+        <div className="app-body">
+          <nav id="side-nav" className={open ? "side-nav open" : "side-nav"} aria-label="Portal">
+            {nav!.map((g, i) => (
+              <div className="side-group" key={g.heading ?? i}>
+                {g.heading && <h2>{g.heading}</h2>}
+                <NavLinks items={g.items} onPick={() => setOpen(false)} />
+              </div>
+            ))}
+          </nav>
+          {open && <div className="side-scrim" onClick={() => setOpen(false)} aria-hidden="true" />}
+          <div className="app-main">
+            <div className="wrap">{children}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="app-main">
+          <div className="wrap">{children}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -122,7 +207,7 @@ export default function PortalLayout() {
   }
 
   return (
-    <Shell nav={NAV[profile.role]}>
+    <Shell nav={NAV[profile.role]} side={profile.role === "staff"}>
       <Outlet />
     </Shell>
   );
