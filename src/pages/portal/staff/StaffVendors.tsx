@@ -8,12 +8,12 @@ import { useQuery } from "../../../lib/useQuery";
 import {
   ALL_AREAS,
   COUNTIES,
-  TRADES,
-  TRADE_LABEL,
+  tradeLabel,
   countyLabel,
   coversAny,
   coversCounty,
   insuranceState,
+  type Trade,
   type Vendor,
   type VendorPreference,
 } from "../../../lib/vendors";
@@ -28,6 +28,7 @@ interface Prop {
 }
 
 interface Data {
+  trades: Trade[];
   vendors: Vendor[];
   prefs: VendorPreference[];
   props: Prop[];
@@ -35,15 +36,17 @@ interface Data {
 
 export default function StaffVendors() {
   const data = useQuery<Data>(async () => {
-    const [v, p, pr] = await Promise.all([
+    const [t, v, p, pr] = await Promise.all([
+      supabase.from("trades").select("key, label, sort, active").order("sort").order("label"),
       supabase.from("vendors").select("*").order("name"),
       supabase.from("owner_vendor_preferences").select("*").order("created_at"),
       supabase.from("properties").select("id, address, city, county, owner_id, owners(name)").order("address"),
     ]);
-    const error = v.error ?? p.error ?? pr.error;
+    const error = t.error ?? v.error ?? p.error ?? pr.error;
     if (error) return { data: null, error };
     return {
       data: {
+        trades: (t.data ?? []) as Trade[],
         vendors: (v.data ?? []) as Vendor[],
         prefs: (p.data ?? []) as VendorPreference[],
         props: (pr.data ?? []) as unknown as Prop[],
@@ -120,8 +123,8 @@ function Finder({ data }: { data: Data }) {
           <Field label="Trade">
             <select value={trade} onChange={(e) => setTrade(e.target.value)}>
               <option value="">Choose…</option>
-              {TRADES.map((t) => (
-                <option key={t} value={t}>{TRADE_LABEL[t]}</option>
+              {data.trades.filter((t) => t.active).map((t) => (
+                <option key={t.key} value={t.key}>{t.label}</option>
               ))}
             </select>
           </Field>
@@ -152,7 +155,7 @@ function Finder({ data }: { data: Data }) {
           )}
           {!ownerPicks.length && !matches.length && prop.county && (
             <p className="muted">
-              No {TRADE_LABEL[trade].toLowerCase()} vendor covers {countyLabel(prop.county)} yet. Add one below, or add
+              No {tradeLabel(data.trades, trade).toLowerCase()} vendor covers {countyLabel(prop.county)} yet. Add one below, or add
               this county to an existing one.
             </p>
           )}
@@ -282,7 +285,7 @@ function Review({ data, onDone }: { data: Data; onDone: () => void }) {
         return (
           <div className="review-row" key={p.id}>
             <div>
-              <b>{p.name}</b> · {TRADE_LABEL[p.trade] ?? p.trade}
+              <b>{p.name}</b> · {tradeLabel(data.trades, p.trade)}
               <div className="muted" style={{ fontSize: ".88rem" }}>
                 {owner(p.owner_id)} · {where(p)} · sent {shortDate(p.created_at.slice(0, 10))}
               </div>
@@ -318,7 +321,7 @@ function Review({ data, onDone }: { data: Data; onDone: () => void }) {
           <ul className="plain-list">
             {approved.map((p) => (
               <li key={p.id}>
-                {owner(p.owner_id)}: {TRADE_LABEL[p.trade]} → <b>{(p.vendor_id && vendorName.get(p.vendor_id)) || p.name}</b>{" "}
+                {owner(p.owner_id)}: {tradeLabel(data.trades, p.trade)} → <b>{(p.vendor_id && vendorName.get(p.vendor_id)) || p.name}</b>{" "}
                 <span className="muted">({where(p)})</span>
               </li>
             ))}
@@ -369,6 +372,7 @@ function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
         <VendorForm
           key={editing === "new" ? "new" : editing.id}
           vendor={editing === "new" ? null : editing}
+          allTrades={data.trades}
           onCancel={() => setEditing(null)}
           onSaved={(msg) => {
             setEditing(null);
@@ -383,8 +387,8 @@ function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
           <Field label="Trade">
             <select value={trade} onChange={(e) => setTrade(e.target.value)}>
               <option value="">All trades</option>
-              {TRADES.map((t) => (
-                <option key={t} value={t}>{TRADE_LABEL[t]}</option>
+              {data.trades.map((t) => (
+                <option key={t.key} value={t.key}>{t.label}{t.active ? "" : " (hidden)"}</option>
               ))}
             </select>
           </Field>
@@ -424,7 +428,7 @@ function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
               </div>
               <div className="vendor-tags">
                 {v.trades.map((t) => (
-                  <span className="tag trade" key={t}>{TRADE_LABEL[t] ?? t}</span>
+                  <span className="tag trade" key={t}>{tradeLabel(data.trades, t)}</span>
                 ))}
                 <span className="tag">{v.areas.includes(ALL_AREAS) ? "All areas" : v.areas.map((a) => `${a} Co.`).join(", ")}</span>
                 <InsuranceTag expires={v.insurance_expires} />
@@ -444,10 +448,12 @@ function VendorList({ data, onDone }: { data: Data; onDone: () => void }) {
 
 function VendorForm({
   vendor,
+  allTrades,
   onCancel,
   onSaved,
 }: {
   vendor: Vendor | null;
+  allTrades: Trade[];
   onCancel: () => void;
   onSaved: (msg: string) => void;
 }) {
@@ -518,12 +524,14 @@ function VendorForm({
 
       <fieldset className="checks">
         <legend>Trades</legend>
-        {TRADES.map((t) => (
-          <label className="check" key={t}>
-            <input type="checkbox" checked={trades.includes(t)} onChange={() => setTrades((x) => toggle(x, t))} />
-            <span>{TRADE_LABEL[t]}</span>
-          </label>
-        ))}
+        {allTrades
+          .filter((t) => t.active || trades.includes(t.key))
+          .map((t) => (
+            <label className="check" key={t.key}>
+              <input type="checkbox" checked={trades.includes(t.key)} onChange={() => setTrades((x) => toggle(x, t.key))} />
+              <span>{t.label}{t.active ? "" : " (hidden)"}</span>
+            </label>
+          ))}
       </fieldset>
 
       <fieldset className="checks">

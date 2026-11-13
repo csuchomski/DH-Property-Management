@@ -1,26 +1,19 @@
 // Vendor trades and service areas, shared by the owner and staff vendor pages.
-export const TRADES = [
-  "plumbing", "electrical", "hvac", "appliance", "handyman", "roofing", "painting", "flooring",
-  "pest", "locksmith", "cleaning", "lawn_snow", "general_contractor", "other",
-] as const;
-export type Trade = (typeof TRADES)[number];
+import { supabase } from "./supabase";
 
-export const TRADE_LABEL: Record<string, string> = {
-  plumbing: "Plumbing",
-  electrical: "Electrical",
-  hvac: "Heating & cooling",
-  appliance: "Appliance repair",
-  handyman: "Handyman",
-  roofing: "Roofing & gutters",
-  painting: "Painting",
-  flooring: "Flooring",
-  pest: "Pest control",
-  locksmith: "Locks & keys",
-  cleaning: "Cleaning",
-  lawn_snow: "Lawn & snow",
-  general_contractor: "General contractor",
-  other: "Other",
+// Trades live in the database so staff can edit them on the Settings page.
+export interface Trade {
+  key: string;
+  label: string;
+  sort: number;
+  active: boolean;
+}
+export const loadTrades = async () => {
+  const res = await supabase.from("trades").select("key, label, sort, active").order("sort").order("label");
+  return { data: res.data as Trade[] | null, error: res.error };
 };
+export const tradeLabel = (trades: Trade[] | null | undefined, key: string) =>
+  trades?.find((t) => t.key === key)?.label ?? key.replace(/_/g, " ");
 
 // Counties a vendor can cover: southeast Wisconsin, core service area first.
 export const COUNTIES = [

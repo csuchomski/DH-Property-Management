@@ -124,3 +124,5 @@ ledger keeps a balance for each owner (receipts minus disbursements on their pro
 - **Owner → Vendors**: owners name the plumber, electrician and so on they want called first, for all their
   properties or one. Staff approve (adding the vendor to the list, or matching an existing one) or decline with a
   note; the owner is emailed either way, and staff are emailed when a suggestion comes in.
+- **Staff → Settings → Vendor trades**: rename, reorder, hide, add or delete trades. Renames show everywhere; hidden
+  trades stay on existing vendors but aren't offered; a trade can only be deleted when no vendor or owner pick uses it.

@@ -7,7 +7,7 @@ import { shortDate } from "../../../lib/format";
 import { loadPortfolio } from "../../../lib/portfolio";
 import { supabase } from "../../../lib/supabase";
 import { useQuery } from "../../../lib/useQuery";
-import { TRADES, TRADE_LABEL, type VendorPreference } from "../../../lib/vendors";
+import { loadTrades, tradeLabel, type VendorPreference } from "../../../lib/vendors";
 
 const STATUS: Record<VendorPreference["status"], { label: string; cls: string }> = {
   pending: { label: "Waiting on review", cls: "warn" },
@@ -25,6 +25,7 @@ export default function OwnerVendors() {
         : { data: [], error: null },
     [ownerId],
   );
+  const trades = useQuery(loadTrades, []);
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [ok, setOk] = useState<string | null>(null);
@@ -91,8 +92,8 @@ export default function OwnerVendors() {
               <Field label="Trade">
                 <select name="trade" required defaultValue="">
                   <option value="">Choose…</option>
-                  {TRADES.map((t) => (
-                    <option key={t} value={t}>{TRADE_LABEL[t]}</option>
+                  {trades.data?.filter((t) => t.active).map((t) => (
+                    <option key={t.key} value={t.key}>{t.label}</option>
                   ))}
                 </select>
               </Field>
@@ -152,7 +153,7 @@ export default function OwnerVendors() {
               <tbody>
                 {prefs.data.map((p) => (
                   <tr key={p.id}>
-                    <td data-label="Trade"><div className="cell">{TRADE_LABEL[p.trade] ?? p.trade}</div></td>
+                    <td data-label="Trade"><div className="cell">{tradeLabel(trades.data, p.trade)}</div></td>
                     <td data-label="Vendor">
                       <div className="cell">
                         <b>{p.name}</b>

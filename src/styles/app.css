@@ -240,3 +240,17 @@ fieldset.checks .check{min-width:150px}
 .multi-menu{position:absolute;z-index:20;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:0 10px 30px rgba(16,27,43,.12);padding:8px 12px;display:grid;gap:4px;max-height:320px;overflow-y:auto}
 .multi-menu .check{font-weight:400;padding:3px 0}
 .multi-menu .link-btn{justify-self:start;margin-top:4px}
+
+/* Settings lists */
+.settings-list{list-style:none;margin:14px 0 0;padding:0;border-top:1px solid var(--line)}
+.settings-list li{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
+.settings-list li.hidden-row .label-input{color:#8A97A5;text-decoration:line-through}
+.settings-list .order{display:inline-flex;gap:4px}
+.icon-btn{width:30px;height:30px;border:1px solid var(--line);background:#fff;border-radius:var(--r-sm);cursor:pointer;font-size:.9rem;color:var(--ink);line-height:1}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.label-input,.settings-add input{font:inherit;font-size:.95rem;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px;flex:1 1 200px;min-width:0;max-width:340px}
+.label-input:focus,.settings-add input:focus{outline:3px solid rgba(31,94,82,.35);border-color:var(--pine)}
+.settings-list .used{font-size:.85rem;min-width:80px}
+.settings-list .check{margin:0}
+.settings-list .link-btn:disabled{opacity:.35;cursor:default}
+.settings-add{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}

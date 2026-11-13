@@ -72,7 +72,13 @@ const NAV: Record<Role, NavGroup[]> = {
         { to: "/portal/owners", label: "Owners" },
       ],
     },
-    { heading: "Admin", items: [{ to: "/portal/accounts", label: "Accounts" }] },
+    {
+      heading: "Admin",
+      items: [
+        { to: "/portal/accounts", label: "Accounts" },
+        { to: "/portal/settings", label: "Settings" },
+      ],
+    },
   ],
 };
 
